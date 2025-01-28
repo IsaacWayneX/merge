@@ -1,10 +1,18 @@
-'use client'
-
 import { Search, Bell } from 'lucide-react'
+
+interface User {
+  name: string;
+  image: string;
+}
+
+interface Row {
+  users: User[];
+  dateRange: string;
+}
 
 export default function Bonded() {
   // Create array of rows for demonstration
-  const rows = Array(9).fill({
+  const rows: Row[] = Array(9).fill({
     users: [
       { name: 'Maria', image: 'https://photosbook.in/wp-content/uploads/cute-girl-pic67.jpg' },
       { name: 'Joseph', image: 'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=600' }
@@ -32,10 +40,10 @@ export default function Bonded() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-        <table className="w-full ">
+          <table className="w-full">
             {/* Table Header */}
             <thead>
-            <tr className="text-left text-sm text-gray-500 rounded-md border border-gray-200">
+              <tr className="text-left text-sm text-gray-500 rounded-md border border-gray-200">
                 <th className="px-6 py-4">Users</th>
                 <th className="px-6 py-4">Date</th>
                 <th className="px-6 py-4 text-right">Action</th>
@@ -49,7 +57,7 @@ export default function Bonded() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div className="flex -space-x-2">
-                        {row.users.map((user, userIdx) => (
+                        {row.users.map((user: User, userIdx: number) => (
                           <div key={userIdx} className="h-10 w-10 rounded-full border-2 border-white overflow-hidden">
                             <img
                               src={user.image || "/placeholder.svg"}
@@ -60,7 +68,7 @@ export default function Bonded() {
                         ))}
                       </div>
                       <div className="flex gap-2">
-                        {row.users.map((user, userIdx) => (
+                        {row.users.map((user: User, userIdx: number) => (
                           <span
                             key={userIdx}
                             className="px-2 py-1 rounded-md text-xs bg-[#5E17EB]/30 text-[#5E17EB]"
@@ -86,4 +94,3 @@ export default function Bonded() {
     </div>
   )
 }
-

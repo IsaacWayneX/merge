@@ -59,6 +59,8 @@ export default function Places1() {
   const openActionModal = (place: Place) => {
     setSelectedPlace(place)
     setShowActionModal(true)
+    selectedPlace
+
   }
 
   const handleAddPlace = async (e: FormEvent<HTMLFormElement>) => {
@@ -92,6 +94,7 @@ export default function Places1() {
 
     setShowHoursModal(false)
     resetForm()
+    formData
   }
 
   const handleCreateCategory = async (e: FormEvent<HTMLFormElement>) => {
@@ -102,6 +105,7 @@ export default function Places1() {
     // await createCategory(formData.get("category"))
 
     setShowCategoryModal(false)
+    formData
   }
 
   const resetForm = () => {

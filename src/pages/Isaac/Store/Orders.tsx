@@ -29,7 +29,7 @@ interface OrdersProps {
   setFilter: (filter: string) => void;
 }
 
-const Orders = ({ filter, setFilter }: OrdersProps) => {
+const Orders = ({ filter, }: OrdersProps) => {
   const orders: Order[] = [
     {
       id: "1",

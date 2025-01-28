@@ -52,6 +52,14 @@ const dummyAttendees: Attendee[] = [
   },
 ]
 
+// Mock function to filter attendees by eventId
+const getAttendeesByEventId = (eventId: number): Attendee[] => {
+  // In a real application, this would filter based on the eventId
+  // For now, return all dummy attendees
+  console.log(`Fetching attendees for event ${eventId}`)
+  return dummyAttendees
+}
+
 export default function TicketsModal({ isOpen, onClose, eventId, eventTitle }: TicketsModalProps) {
   const [attendees, setAttendees] = useState<Attendee[]>([])
 
@@ -62,9 +70,10 @@ export default function TicketsModal({ isOpen, onClose, eventId, eventTitle }: T
   }, [isOpen, eventId])
 
   const fetchAttendees = async () => {
-    // Simulating API call
+    // Simulating API call with eventId
     await new Promise((resolve) => setTimeout(resolve, 500))
-    setAttendees(dummyAttendees)
+    const filteredAttendees = getAttendeesByEventId(eventId)
+    setAttendees(filteredAttendees)
   }
 
   if (!isOpen) return null
@@ -99,8 +108,7 @@ export default function TicketsModal({ isOpen, onClose, eventId, eventTitle }: T
 }
 
 export function getAttendeesCount(eventId: number): number {
-  // In a real application, this would make an API call
-  // For now, we'll return the length of dummyAttendees
-  return dummyAttendees.length
+  // Now we're using the eventId parameter
+  const attendees = getAttendeesByEventId(eventId)
+  return attendees.length
 }
-
