@@ -1,6 +1,7 @@
+import { useState } from 'react';
+import MerchantOrder from './Order-components/Merchant-order';
+import BondytOrder from './Order-components/Bondyt-order';
 
-
-// TypeScript interfaces
 interface OrderProduct {
   name: string;
   year: number;
@@ -11,78 +12,119 @@ interface OrderProduct {
 
 interface OrderSender {
   name: string;
-  note?: string;
+  note: string;
 }
 
-interface Order {
+// Base interface for common order properties
+interface BaseOrder {
   id: string;
   product: OrderProduct;
   paymentStatus: string;
   sender: OrderSender;
   reviewer: string;
   address: string;
-  status: string;
 }
+
+// Type discriminated merchant orders
+interface MerchantOrder extends BaseOrder {
+  type: 'merchant';
+  merchantId: string;
+  status: 'Incomplete' | 'In progress' | 'Complete';
+}
+
+// Type discriminated bondyt orders
+interface BondytOrder extends BaseOrder {
+  type: 'bondyt';
+  status: 'Incomplete' | 'In progress' | 'Complete';
+}
+
+// Union type for all order types
+type Order = MerchantOrder | BondytOrder;
 
 interface OrdersProps {
   filter: string;
   setFilter: (filter: string) => void;
 }
 
-const Orders = ({ filter, }: OrdersProps) => {
+const Orders: React.FC<OrdersProps> = ({ filter }) => {
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderType, setOrderType] = useState<'merchant' | 'bondyt' | null>(null);
+
   const orders: Order[] = [
     {
       id: "1",
+      type: 'merchant',
       product: {
         name: "Mercedes GLK350",
         year: 2014,
         color: "Grey",
         price: 3000,
-        images: [
-          "/api/placeholder/400/320",
-          "/api/placeholder/400/320",
-          "/api/placeholder/400/320",
-          "/api/placeholder/400/320"
-        ]
+        images: Array(4).fill("/api/placeholder/400/320"),
       },
       paymentStatus: "Payment confirmed",
       sender: {
-        name: "Michael",
-        note: "Finibus phasellus faucibus scelerisque eleifend donec pretium vulputate sapien"
+        name: "Michel",
+        note: "Fringilla phasellus faucibus scelerisque eleifend donec pretium vulputate sapie",
       },
       reviewer: "Maria",
-      address: "House 1 Amara street Example World, Nigeria",
-      status: "View"
+      address: "House 1 Amore street Katampe Abuja, Nigeria",
+      status: "Incomplete",
+      merchantId: "MER-101",
     },
     {
       id: "2",
+      type: 'bondyt',
       product: {
         name: "Mercedes GLK350",
         year: 2014,
         color: "Grey",
         price: 3000,
-        images: [
-          "/api/placeholder/400/320",
-          "/api/placeholder/400/320",
-          "/api/placeholder/400/320",
-          "/api/placeholder/400/320"
-        ]
+        images: Array(4).fill("/api/placeholder/400/320"),
       },
       paymentStatus: "Payment confirmed",
       sender: {
-        name: "Michael",
-        note: "Finibus phasellus faucibus scelerisque eleifend donec pretium vulputate sapien"
+        name: "Michel",
+        note: "Fringilla phasellus faucibus scelerisque eleifend donec pretium vulputate sapie",
       },
       reviewer: "Maria",
-      address: "House 1 Amara street Example World, Nigeria",
-      status: "View"
-    }
+      address: "House 1 Amore street Katampe Abuja, Nigeria",
+      status: "Incomplete",
+    },
   ];
 
-  // Filter orders based on filter state
-  const filteredOrders = filter === 'all' ? orders : orders.filter(order => 
-    order.paymentStatus.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredOrders = filter === "all"
+    ? orders
+    : orders.filter(order => 
+        order.paymentStatus.toLowerCase().includes(filter.toLowerCase())
+      );
+
+  const handleOrderClick = (order: Order) => {
+    setSelectedOrder(order);
+    setOrderType(order.type);
+  };
+
+  const handleBack = () => {
+    setSelectedOrder(null);
+    setOrderType(null);
+  };
+
+  if (selectedOrder?.type === 'merchant' && orderType === 'merchant') {
+    return (
+      <MerchantOrder
+        order={selectedOrder}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  if (selectedOrder?.type === 'bondyt' && orderType === 'bondyt') {
+    return (
+      <BondytOrder
+        order={selectedOrder}
+        onBack={handleBack}
+      />
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
@@ -95,62 +137,64 @@ const Orders = ({ filter, }: OrdersProps) => {
 
       <div className="divide-y divide-gray-200">
         {filteredOrders.map((order) => (
-          <div key={order.id} className="grid grid-cols-4 gap-4 p-4">
+          <div key={order.id} className="grid grid-cols-4 gap-4 p-6">
             <div className="flex gap-4">
-              <div className="w-24 h-24 bg-gray-100 rounded overflow-hidden">
-                <img 
-                  src={order.product.images[0]} 
-                  alt={`${order.product.name} main`} 
-                  className="w-full h-16 object-cover" 
+              <div className="w-32 space-y-2">
+                <img
+                  src={order.product.images[0]}
+                  alt={`${order.product.name} main`}
+                  className="w-full h-24 object-cover rounded-lg"
                 />
-                <div className="grid grid-cols-3 gap-0.5 mt-0.5">
+                <div className="grid grid-cols-3 gap-1">
                   {order.product.images.slice(1, 4).map((img, i) => (
-                    <img 
-                      key={i} 
-                      src={img} 
-                      alt={`${order.product.name} view ${i + 2}`} 
-                      className="w-full h-8 object-cover" 
+                    <img
+                      key={i}
+                      src={img}
+                      alt={`${order.product.name} view ${i + 2}`}
+                      className="w-full h-8 object-cover rounded-lg"
                     />
                   ))}
                 </div>
               </div>
+
               <div>
-                <h3 className="font-bold text-gray-900">{order.product.year} {order.product.name}</h3>
-                <p className="text-gray-500 font-semibold">{order.product.color}</p>
-                <div className="mt-2">
-                  <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
-                    {order.paymentStatus}
-                  </span>
-                </div>
-                <p className="mt-2 font-bold text-gray-900">${order.product.price.toLocaleString()}</p>
+                <h3 className="font-semibold text-lg text-gray-900">
+                  {order.product.year} {order.product.name}
+                </h3>
+                <p className="text-gray-500">{order.product.color}</p>
+                <span
+                  className="inline-block mt-2 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium"
+                >
+                  {order.paymentStatus}
+                </span>
+                <p className="mt-2 font-bold text-xl text-gray-900">
+                  ${order.product.price.toLocaleString()}
+                </p>
               </div>
             </div>
-            
+
             <div>
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-600 text-white rounded-md text-xs font-semibold">
-                <span className="w-1.5 h-1.5 bg-white rounded-sm"></span>
+              <button className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
                 {order.sender.name}
-              </span>
-              {order.sender.note && (
-                <p className="mt-2 text-sm text-gray-500 font-semibold border border-gray-300 rounded-md p-2">
-                  {order.sender.note}
-                </p>
-              )}
-            </div>
-            
-            <div>
-              <p className="mt-2 text-sm text-gray-500 font-semibold border border-gray-300 rounded-md p-2">
-                {order.address}
+              </button>
+              <p className="mt-2 text-sm text-gray-600 border border-gray-200 rounded-lg p-3">
+                {order.sender.note}
               </p>
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-600 text-white rounded-md text-xs font-semibold">
-                <span className="w-1.5 h-1.5 bg-white rounded-sm"></span>
-                {order.reviewer}
-              </span>
             </div>
-            
+
             <div>
-              <button className="px-4 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-semibold transition-colors">
-                {order.status}
+              <p className="text-sm text-gray-600 mb-2">{order.address}</p>
+              <button className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors">
+                {order.reviewer}
+              </button>
+            </div>
+
+            <div className="flex items-start justify-end">
+              <button 
+                onClick={() => handleOrderClick(order)}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors"
+              >
+                View
               </button>
             </div>
           </div>
