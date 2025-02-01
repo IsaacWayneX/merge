@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Bell, Plus, X } from 'lucide-react';
+import apiClient from "../utils/apiClient";
 
 interface Book {
   id: number
@@ -50,8 +51,6 @@ export default function Library() {
   const [editingBook, setEditingBook] = useState<Book | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
 
-  const token = localStorage.getItem('access_token')
-  const BASE_URL = 'https://admin-api.bondyt.com'
 
   useEffect(() => {
     fetchBooks()
@@ -60,167 +59,131 @@ export default function Library() {
 
   const fetchBooks = async () => {
     try {
-      setIsLoading(true)
-      const response = await fetch(`${BASE_URL}/admin/book/all`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      
-      if (!response.ok) throw new Error('Failed to fetch books')
-      
-      const data = await response.json()
-      setBooks(data.data || [])
+        setIsLoading(true);
+        const response = await apiClient.get("/admin/book/all");
+
+        setBooks(response.data.data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      setBooks(dummyBooks)
+        setError(err instanceof Error ? err.message : "An error occurred");
+        setBooks(dummyBooks);
     } finally {
-      setIsLoading(false)
+        setIsLoading(false);
     }
-  }
+};
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/admin/book/all-categories`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      
-      if (!response.ok) throw new Error('Failed to fetch categories')
-      
-      const data = await response.json()
-      
-      const formattedCategories = (data.data || []).map((cat: any) => ({
-        value: cat.id,
-        label: cat.name
-      }))
-      setCategories(formattedCategories)
+const fetchCategories = async () => {
+  try {
+      const response = await apiClient.get("/admin/book/all-categories");
+
+      const formattedCategories = (response.data.data || []).map((cat: any) => ({
+          value: cat.id,
+          label: cat.name,
+      }));
+
+      setCategories(formattedCategories);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    }
+      setError("There seems to be a problem");
   }
+};
 
-  const handleAddCategory = async () => {
-    if (newCategory.trim() === '') return
+const handleAddCategory = async () => {
+  if (newCategory.trim() === "") return;
 
-    try {
-      const response = await fetch(`${BASE_URL}/admin/book/new-category`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+  try {
+      await apiClient.post("/admin/book/new-category", {
           name: newCategory,
-          description: newCategory
-        })
-      })
+          description: newCategory,
+      });
 
-      if (!response.ok) throw new Error('Failed to create category')
-
-      await fetchCategories()
-      setNewCategory('')
-      setIsCategoryModalOpen(false)
+      await fetchCategories();
+      setNewCategory("");
+      setIsCategoryModalOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    }
+      setError("Wahala Wahala Wahala!");
   }
+};
 
-  const handleAddBook = async () => {
-    if (!newBookTitle || !newBookFile || !newCoverImage || !selectedBookCategory) return
+ 
+const handleAddBook = async () => {
+  if (!newBookTitle || !newBookFile || !newCoverImage || !selectedBookCategory) return;
 
-    try {
-      const formData = new FormData()
-      formData.append('title', newBookTitle)
-      formData.append('author', newBookAuthor)
-      formData.append('price', newBookPrice)
-      formData.append('rating', newBookRating.toString())
-      formData.append('file', newBookFile)
-      formData.append('imgFile', newCoverImage)
-      formData.append('category_id', selectedBookCategory.value)
+  try {
+      const formData = new FormData();
+      formData.append("title", newBookTitle);
+      formData.append("author", newBookAuthor);
+      formData.append("price", newBookPrice);
+      formData.append("rating", newBookRating.toString());
+      formData.append("file", newBookFile);
+      formData.append("imgFile", newCoverImage);
+      formData.append("category_id", selectedBookCategory.value);
 
-      const response = await fetch(`${BASE_URL}/admin/book/new`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
+      await apiClient.post("/admin/book/new", formData, {
+          headers: {
+              "Content-Type": "multipart/form-data",
+          },
+      });
 
-      if (!response.ok) throw new Error('Failed to create book')
-
-      await fetchBooks()
-      setNewBookTitle('')
-      setNewBookAuthor('')
-      setNewBookPrice('')
-      setNewBookRating(0)
-      setNewBookFile(null)
-      setNewCoverImage(null)
-      setSelectedBookCategory(null)
-      setIsModalOpen(false)
+      await fetchBooks();
+      setNewBookTitle("");
+      setNewBookAuthor("");
+      setNewBookPrice("");
+      setNewBookRating(0);
+      setNewBookFile(null);
+      setNewCoverImage(null);
+      setSelectedBookCategory(null);
+      setIsModalOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    }
+      setError("Wahala Wahala Wahala!");
   }
+};
 
-  const handleSaveEdit = async () => {
-    if (!editingBook || !newBookTitle) return
+const handleSaveEdit = async () => {
+  if (!editingBook || !newBookTitle) return;
 
-    try {
-      const formData = new FormData()
-      formData.append('id', editingBook.id.toString())
-      formData.append('title', newBookTitle)
-      formData.append('author', newBookAuthor)
-      formData.append('price', newBookPrice)
-      formData.append('rating', newBookRating.toString())
-      if (newBookFile) formData.append('file', newBookFile)
-      if (newCoverImage) formData.append('imgFile', newCoverImage)
-      if (selectedEditCategory) formData.append('category_id', selectedEditCategory.value)
+  try {
+      const formData = new FormData();
+      formData.append("id", editingBook.id.toString());
+      formData.append("title", newBookTitle);
+      formData.append("author", newBookAuthor);
+      formData.append("price", newBookPrice);
+      formData.append("rating", newBookRating.toString());
 
-      const response = await fetch(`${BASE_URL}/admin/book/edit`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
+      if (newBookFile) formData.append("file", newBookFile);
+      if (newCoverImage) formData.append("imgFile", newCoverImage);
+      if (selectedEditCategory) formData.append("category_id", selectedEditCategory.value);
 
-      if (!response.ok) throw new Error('Failed to update book')
+      await apiClient.patch("/admin/book/edit", formData, {
+          headers: {
+              "Content-Type": "multipart/form-data",
+          },
+      });
 
-      await fetchBooks()
-      setEditingBook(null)
-      setNewBookTitle('')
-      setNewBookAuthor('')
-      setNewBookPrice('')
-      setNewBookRating(0)
-      setNewBookFile(null)
-      setNewCoverImage(null)
-      setSelectedEditCategory(null)
-      setShowEditModal(false)
+      await fetchBooks();
+      setEditingBook(null);
+      setNewBookTitle("");
+      setNewBookAuthor("");
+      setNewBookPrice("");
+      setNewBookRating(0);
+      setNewBookFile(null);
+      setNewCoverImage(null);
+      setSelectedEditCategory(null);
+      setShowEditModal(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    }
+      setError("Wahala Wahala Wahala!");
   }
+};
 
-  const handleDeleteBook = async (id: number) => {
-    try {
-      const response = await fetch(`${BASE_URL}/admin/book/delete`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id })
-      })
+const handleDeleteBook = async (id: number) => {
+  try {
+      await apiClient.delete("/admin/book/delete", {
+          data: { id }, // `data` is used for DELETE requests with a body
+      });
 
-      if (!response.ok) throw new Error('Failed to delete book')
-
-      await fetchBooks()
+      await fetchBooks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    }
+      setError("Wahala Wahala Wahala!");
   }
+};
 
   const handleEditBook = (book: Book) => {
     setEditingBook(book)
@@ -243,7 +206,7 @@ export default function Library() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-600"
               placeholder="Search category"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -263,7 +226,7 @@ export default function Library() {
 
         <div className="flex justify-between items-center mb-6">
           <select
-            className="bg-purple-100 text-purple-800 py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="bg-indigo-100 text-indigo-800 py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
             value={selectedCategory?.value || ''}
             onChange={(e) => {
               const category = categories.find(cat => cat.value === e.target.value)
@@ -281,7 +244,7 @@ export default function Library() {
             <option value="create-category">Create Category</option>
           </select>
           <button
-            className="bg-purple-600 text-white py-2 px-4 rounded-md flex items-center hover:bg-purple-700 transition duration-300"
+            className="bg-indigo-600 text-white py-2 px-4 rounded-md flex items-center hover:bg-indigo-700 transition duration-300"
             onClick={() => setIsModalOpen(true)}
           >
             Add book
@@ -388,7 +351,7 @@ export default function Library() {
             />
             <button
               onClick={handleAddBook}
-              className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition duration-300"
+              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Save
             </button>
@@ -451,7 +414,7 @@ export default function Library() {
             />
             <button
               onClick={handleSaveEdit}
-              className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition duration-300"
+              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Save Changes
             </button>
@@ -476,7 +439,7 @@ export default function Library() {
             />
             <button
               onClick={handleAddCategory}
-              className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition duration-300"
+              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Create
             </button>

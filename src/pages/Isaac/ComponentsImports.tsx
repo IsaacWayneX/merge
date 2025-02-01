@@ -9,6 +9,10 @@ import Store from "./Store/Store";
 import CompletedOrders from "./Store/Order-pages/CompletedOrders";
 import DeclinedOrders from "./Store/Order-pages/DeclinedOrders";
 import PendingOrders from "./Store/Order-pages/PendingOrders";
+import PendingDates from "./Dates/dates/date-details"
+import Subscriptions from "./Subscription/Subscriptions";
+import DeclinedDates from "./Dates/dates/declined-dates";
+import BookedDates from "./Dates/dates/booked-dates";
 
 export {
   Library,
@@ -20,5 +24,10 @@ export {
   Store,
   CompletedOrders,
   DeclinedOrders,
-  PendingOrders
+  PendingOrders,
+  PendingDates,
+  Subscriptions,
+  DeclinedDates,
+  BookedDates
+
 };

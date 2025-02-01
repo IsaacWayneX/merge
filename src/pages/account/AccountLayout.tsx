@@ -35,6 +35,7 @@ const AccountLayout = () => {
         if (pathname.includes("admin/bonded")) setValue(12);
         if (pathname.includes("admin/dates")) setValue(13);
         if (pathname.includes("admin/places")) setValue(14);
+        if (pathname.includes("admin/subscriptions")) setValue(15);
     }, [pathname]);
 
 
@@ -94,6 +95,11 @@ const AccountLayout = () => {
             title: 'Places',
             status: value == 14 ? true : false,
             baseLink: "/admin/places"
+        },
+        {
+            title: 'Subscriptions',
+            status: value == 15 ? true : false,
+            baseLink: "/admin/subscriptions"
         },
        
     ];

@@ -12,6 +12,10 @@ import {
   CompletedOrders,
   DeclinedOrders,
   PendingOrders,
+  PendingDates,
+  Subscriptions,
+  DeclinedDates,
+  BookedDates
 
 
 } from "@/pages/Isaac/ComponentsImports";
@@ -264,12 +268,16 @@ export const router = createBrowserRouter([
               element: <Bonded />,
             },
             {
-              path: "cars",
+              path: "dates/booked-dates/cars",
               element: <Cars />,
             },
             {
               path: "dates",
               element: <Dates />,
+            },
+            {
+              path: "dates/:id",
+              element: <PendingDates />,
             },
             {
               path: "store",
@@ -286,6 +294,18 @@ export const router = createBrowserRouter([
             {
               path: "pending-orders",
               element: <PendingOrders />,
+            },
+            {
+              path: "subscriptions",
+              element: <Subscriptions />,
+            },
+            {
+              path: "dates/declined-dates",
+              element: <DeclinedDates />,
+            },
+            {
+              path: "dates/booked-dates",
+              element: <BookedDates />,
             },
             
           ]

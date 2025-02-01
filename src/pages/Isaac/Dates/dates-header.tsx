@@ -1,4 +1,5 @@
 import { Star } from "lucide-react"
+import { Link } from "react-router"
 
 export default function DatesHeader() {
   return (
@@ -8,9 +9,11 @@ export default function DatesHeader() {
           <h3 className="text-sm font-semibold text-gray-700">Total booked dates</h3>
           <div className="mt-1 text-4xl font-bold text-gray-900">200</div>
         </div>
+        <Link to={`booked-dates`}>
         <button className="mt-2 w-full rounded-md bg-[#5E17EB] py-3 text-sm font-bold text-white hover:bg-[#4C11D1] transition-colors">
           View
         </button>
+        </Link>
       </div>
 
       <div className="rounded-lg border bg-white p-4 flex flex-col justify-between h-48">
@@ -23,9 +26,11 @@ export default function DatesHeader() {
           </div>
           <div className="mt-1 text-4xl font-bold text-gray-900">20</div>
         </div>
+        <Link to={`declined-dates`}>
         <button className="mt-2 w-full rounded-md bg-[#5E17EB] py-3 text-sm font-bold text-white hover:bg-[#4C11D1] transition-colors">
           View
         </button>
+        </Link>
       </div>
 
       <div className="rounded-lg border bg-white p-4 flex flex-col justify-between h-48">
@@ -37,9 +42,11 @@ export default function DatesHeader() {
             ))}
           </div>
         </div>
+        <Link to={``}>
         <button className="mt-2 w-full rounded-md bg-[#5E17EB] py-3 text-sm font-bold text-white hover:bg-[#4C11D1] transition-colors">
           View
         </button>
+        </Link>
       </div>
     </div>
   )
