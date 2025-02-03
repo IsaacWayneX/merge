@@ -20,7 +20,7 @@ apiClient.interceptors.request.use(
         return config;
     },
     (error) => {
-        return Promise.reject(new Error("Oops! something is wrong try reloading this tab"));
+        return Promise.reject(error);
     }
 );
 
@@ -56,11 +56,11 @@ apiClient.interceptors.response.use(
             } catch (refreshError) {
                 console.error("Token refresh failed, logging out...");
                 _logOutUser();
-                return Promise.reject(new Error("Oops! something is wrong try reloading this tab"));
+                return Promise.reject(refreshError);
             }
         }
 
-        return Promise.reject(new Error("Oops! something is wrong try reloading this tab"));
+        return Promise.reject(error);
     }
 );
 
