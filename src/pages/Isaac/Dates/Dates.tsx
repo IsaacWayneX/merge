@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Search, Bell } from "lucide-react"
+import { Search, Bell, Settings } from "lucide-react"
 import DatesHeader from "./dates-header"
 import NoPendingDates from "./NoPendingDates"
 import { Link } from "react-router-dom"
@@ -87,6 +87,11 @@ export default function Dates() {
           />
         </div>
         <div className="flex items-center space-x-4">
+        <Link to={`cars`}>
+        <button className="rounded-full p-2 hover:bg-gray-100">
+          <Settings className="h-6 w-6 text-gray-800" />
+        </button>
+        </Link>
           <button className="rounded-full p-2 hover:bg-gray-100">
             <Bell className="h-6 w-6 text-gray-800" />
           </button>

@@ -268,7 +268,7 @@ export const router = createBrowserRouter([
               element: <Bonded />,
             },
             {
-              path: "dates/booked-dates/cars",
+              path: "dates/cars",
               element: <Cars />,
             },
             {

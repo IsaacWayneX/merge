@@ -6,6 +6,7 @@ import apiClient from "../utils/apiClient"
 // @ts-ignore
 import LocationSelectionModal from "./locationselection"
 import "./scrollbar-hide.css"
+import { useNavigate } from "react-router-dom"
 
 interface LocationData {
   city: string
@@ -68,6 +69,7 @@ export default function CarsManagement() {
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null)
   const [selectedBrand, setSelectedBrand] = useState(editingCar?.brand_id || "");
   const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchCars()
@@ -175,8 +177,8 @@ export default function CarsManagement() {
     <div className="min-h-screen bg-white border border-gray-200 component-border">
       <div className="p-6">
         <div className="flex items-center gap-4 mb-6">
-          <button className="p-2 hover:bg-gray-100 rounded-lg">
-            <ChevronLeft className="w-6 h-6 text-gray-800" />
+        <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full">
+            <ChevronLeft className="w-8 h-8 text-gray-900" />
           </button>
         </div>
 

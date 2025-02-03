@@ -1,4 +1,4 @@
-import { Search, ChevronLeft, Settings } from "lucide-react"
+import { Search, ChevronLeft } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 
 const bookedDates = [
@@ -44,7 +44,7 @@ export default function BookedDates() {
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full">
-            <ChevronLeft className="w-6 h-6 text-gray-900" />
+            <ChevronLeft className="w-8 h-8 text-gray-900" />
           </button>
           <div className="relative flex-grow max-w-md">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-600" />
@@ -55,11 +55,11 @@ export default function BookedDates() {
             />
           </div>
         </div>
-        <Link to={`cars`}>
+        {/* <Link to={`cars`}>
         <button className="rounded-full p-2 hover:bg-gray-100">
           <Settings className="h-6 w-6 text-gray-800" />
         </button>
-        </Link>
+        </Link> */}
       </div>
 
       <div className="rounded-lg border bg-white overflow-hidden">
