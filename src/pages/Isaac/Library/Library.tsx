@@ -64,7 +64,7 @@ export default function Library() {
 
         setBooks(response.data.data || []);
     } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+      setError("Oops! something is wrong try reloading this tab");
         setBooks(dummyBooks);
     } finally {
         setIsLoading(false);
@@ -82,7 +82,7 @@ const fetchCategories = async () => {
 
       setCategories(formattedCategories);
     } catch (err) {
-      setError("There seems to be a problem");
+      setError("Oops! something is wrong try reloading this tab");
   }
 };
 
@@ -99,7 +99,7 @@ const handleAddCategory = async () => {
       setNewCategory("");
       setIsCategoryModalOpen(false);
     } catch (err) {
-      setError("Wahala Wahala Wahala!");
+      setError("Oops! something is wrong try reloading this tab");
   }
 };
 
@@ -133,7 +133,7 @@ const handleAddBook = async () => {
       setSelectedBookCategory(null);
       setIsModalOpen(false);
     } catch (err) {
-      setError("Wahala Wahala Wahala!");
+      setError("Oops! something is wrong try reloading this tab");
   }
 };
 
@@ -169,7 +169,7 @@ const handleSaveEdit = async () => {
       setSelectedEditCategory(null);
       setShowEditModal(false);
     } catch (err) {
-      setError("Wahala Wahala Wahala!");
+      setError("Oops! something is wrong try reloading this tab");
   }
 };
 
@@ -181,7 +181,7 @@ const handleDeleteBook = async (id: number) => {
 
       await fetchBooks();
     } catch (err) {
-      setError("Wahala Wahala Wahala!");
+      setError("Oops! something is wrong try reloading this tab");
   }
 };
 
@@ -200,13 +200,13 @@ const handleDeleteBook = async (id: number) => {
 
   return (
     <div className="w-full bg-gray-100 min-h-screen">
-      <div className="bg-white shadow-md p-6">
+      <div className="bg-white min-h-screen p-6 component-border">
         <header className="flex justify-between items-center mb-6">
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-md ">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#5820CC] text-gray-900"
               placeholder="Search category"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -226,7 +226,7 @@ const handleDeleteBook = async (id: number) => {
 
         <div className="flex justify-between items-center mb-6">
           <select
-            className="bg-indigo-100 text-indigo-800 py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            className="bg-indigo-100 text-[#6C38FF] py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5820CC]"
             value={selectedCategory?.value || ''}
             onChange={(e) => {
               const category = categories.find(cat => cat.value === e.target.value)
@@ -244,7 +244,7 @@ const handleDeleteBook = async (id: number) => {
             <option value="create-category">Create Category</option>
           </select>
           <button
-            className="bg-indigo-600 text-white py-2 px-4 rounded-md flex items-center hover:bg-indigo-700 transition duration-300"
+            className="bg-[#E9E3FF] text-[#6C38FF] px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#DCD3FF]"
             onClick={() => setIsModalOpen(true)}
           >
             Add book
@@ -351,7 +351,7 @@ const handleDeleteBook = async (id: number) => {
             />
             <button
               onClick={handleAddBook}
-              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
+              className="w-full bg-[#5820CC] text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Save
             </button>
@@ -414,7 +414,7 @@ const handleDeleteBook = async (id: number) => {
             />
             <button
               onClick={handleSaveEdit}
-              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
+              className="w-full bg-[#5820CC] text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Save Changes
             </button>
@@ -439,7 +439,7 @@ const handleDeleteBook = async (id: number) => {
             />
             <button
               onClick={handleAddCategory}
-              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
+              className="w-full bg-[#5820CC] text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Create
             </button>

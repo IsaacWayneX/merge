@@ -66,7 +66,7 @@ export default function DeclinedOrders() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4 component-border">
       {/* Header */}
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="flex items-center justify-between px-4 py-4">

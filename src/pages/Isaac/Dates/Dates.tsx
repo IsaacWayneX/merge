@@ -3,6 +3,7 @@ import { Search, Bell } from "lucide-react"
 import DatesHeader from "./dates-header"
 import NoPendingDates from "./NoPendingDates"
 import { Link } from "react-router-dom"
+import "../border.css"
 
 const pendingDates = [
   {
@@ -75,7 +76,7 @@ export default function Dates() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 component-border">
       <div className="mb-8 flex items-center justify-between">
         <div className="relative flex-grow max-w-md">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-600" />

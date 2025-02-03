@@ -90,7 +90,9 @@ export default function StoreTab() {
 
   return (
     <>
+    
       <div className="space-y-4">
+        {/* main content */}
         {/* Search and Filter Bar */}
         <div className="flex items-center gap-4">
           <select 
@@ -122,7 +124,7 @@ export default function StoreTab() {
           </div>
           <button
             onClick={() => setShowAddProductModal(true)}
-            className="px-4 py-2 bg-[#5E17EB] text-white rounded-md flex items-center gap-2"
+            className="px-4 py-2 bg-[#5E17EB] text-white rounded-md flex items-center gap-2 "
           >
             Add product
             <Plus size={20} />

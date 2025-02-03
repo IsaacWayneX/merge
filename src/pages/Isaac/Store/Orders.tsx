@@ -127,8 +127,8 @@ const Orders: React.FC<OrdersProps> = ({ filter }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-      <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 border-b border-gray-200">
+    <div className="bg-white rounded-lg overflow-hidden component-border ">
+      <div className="grid grid-cols-4 gap-4 p-4 bg-gray-200 border-b border-gray-200">
         <div className="text-sm font-semibold text-gray-500">Product details</div>
         <div className="text-sm font-semibold text-gray-500">Sender/Note</div>
         <div className="text-sm font-semibold text-gray-500">Reviewer's Address</div>

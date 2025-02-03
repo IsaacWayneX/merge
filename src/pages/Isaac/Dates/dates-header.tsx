@@ -3,8 +3,8 @@ import { Link } from "react-router"
 
 export default function DatesHeader() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
-      <div className="rounded-lg border bg-white p-4 flex flex-col justify-between h-48">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8 ">
+      <div className="rounded-lg border bg-white p-4 flex flex-col justify-between h-48 component-border">
         <div>
           <h3 className="text-sm font-semibold text-gray-700">Total booked dates</h3>
           <div className="mt-1 text-4xl font-bold text-gray-900">200</div>
@@ -16,7 +16,7 @@ export default function DatesHeader() {
         </Link>
       </div>
 
-      <div className="rounded-lg border bg-white p-4 flex flex-col justify-between h-48">
+      <div className="rounded-lg border bg-white p-4 flex flex-col justify-between h-48 component-border">
         <div>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-700">Declined dates</h3>
@@ -33,7 +33,7 @@ export default function DatesHeader() {
         </Link>
       </div>
 
-      <div className="rounded-lg border bg-white p-4 flex flex-col justify-between h-48">
+      <div className="rounded-lg border bg-white p-4 flex flex-col justify-between h-48 component-border">
         <div>
           <h3 className="text-sm font-semibold text-gray-700">Customer feedback</h3>
           <div className="mt-1 flex space-x-1">

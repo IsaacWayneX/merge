@@ -21,7 +21,7 @@ export default function Bonded() {
   })
 
   return (
-    <div className="w-full min-h-screen bg-white">
+    <div className="w-full min-h-screen bg-white component-border">
       <div className="p-6">
         {/* Search Header */}
         <div className="relative mb-6">
@@ -40,10 +40,10 @@ export default function Bonded() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full ">
             {/* Table Header */}
-            <thead>
-              <tr className="text-left text-sm text-gray-500 rounded-md border border-gray-200">
+            <thead className="bg-gray-150 border rounded-lg">
+              <tr className="text-left text-sm text-gray-700  ">
                 <th className="px-6 py-4">Users</th>
                 <th className="px-6 py-4">Date</th>
                 <th className="px-6 py-4 text-right">Action</th>

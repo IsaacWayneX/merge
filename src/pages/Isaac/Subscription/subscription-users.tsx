@@ -45,7 +45,7 @@ export default function SubscriptionUsers({ planName, onBack }: SubscriptionUser
   };
 
   return (
-    <div className="w-full bg-gray-50 min-h-screen">
+    <div className="w-full bg-gray-50 min-h-screen component-border ">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
@@ -87,7 +87,7 @@ export default function SubscriptionUsers({ planName, onBack }: SubscriptionUser
                     alt={user.name}
                     className="w-10 h-10 rounded-full object-cover"
                   />
-                  <span className="font-medium">{user.name}</span>
+                  <span className="font-medium text-gray-900">{user.name}</span>
                 </div>
                 <div className="text-gray-600">
                   {user.dueDate.start} - {user.dueDate.end}

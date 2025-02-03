@@ -10,7 +10,7 @@ export default function DateDetails() {
   if (!date) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4 component-border ">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full">

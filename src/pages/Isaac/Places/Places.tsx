@@ -9,7 +9,7 @@ export default function Places() {
   const [activeTab, setActiveTab] = useState("events")
 
   return (
-    <div className="bg-white min-h-screen w-full p-6">
+    <div className="bg-white min-h-screen w-full p-6 component-border">
       {/* Header with search */}
       <div className="flex items-center justify-between mb-6">
         <div className="relative">

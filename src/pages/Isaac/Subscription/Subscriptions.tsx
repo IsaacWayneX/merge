@@ -43,6 +43,10 @@ export default function Subscriptions() {
     setIsEditModalOpen(true)
   }
 
+  const handleDelete = (planId: number) => {
+    setPlans(plans.filter((plan) => plan.id !== planId))
+  }
+
   const handleEditSave = () => {
     if (editingPlan && editPrice) {
       const updatedPlans = plans.map((plan) =>
@@ -72,7 +76,7 @@ export default function Subscriptions() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 min-h-screen w-full component-border">
       {/* Add Plan Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -94,7 +98,7 @@ export default function Subscriptions() {
                   type="text"
                   value={newPlan.name}
                   onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C27FF]"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C27FF] text-gray-600"
                 />
               </div>
 
@@ -104,7 +108,7 @@ export default function Subscriptions() {
                   type="number"
                   value={newPlan.price}
                   onChange={(e) => setNewPlan({ ...newPlan, price: e.target.value })}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C27FF]"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C27FF] text-gray-600"
                 />
               </div>
 
@@ -140,7 +144,7 @@ export default function Subscriptions() {
                   type="number"
                   value={editPrice}
                   onChange={(e) => setEditPrice(e.target.value)}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C27FF]"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C27FF] text-gray-600"
                 />
               </div>
 
@@ -156,7 +160,8 @@ export default function Subscriptions() {
       )}
 
       {/* Main Content */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="space-y-4 ">
+      <div className="flex justify-between items-center mb-8 ">
         <button
           onClick={() => setIsAddModalOpen(true)}
           className="inline-flex items-center gap-2 rounded-lg bg-[#6C27FF] px-4 py-2 text-white hover:bg-[#5820CC] transition-colors"
@@ -170,7 +175,7 @@ export default function Subscriptions() {
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 ">
         {plans.map((plan) => (
           <div
             key={plan.id}
@@ -193,10 +198,17 @@ export default function Subscriptions() {
               >
                 Edit
               </button>
+              <button
+                onClick={() => handleDelete(plan.id)}
+                className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}
       </div>
+    </div>
     </div>
   )
 }
