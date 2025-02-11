@@ -46,7 +46,6 @@ export default function Events() {
   const [events, setEvents] = useState<Event[]>([])
   const [attendeeCounts, setAttendeeCounts] = useState<AttendeeCount[]>([])
   const [showActionModal, setShowActionModal] = useState(false)
-  const [showAddModal, setShowAddModal] = useState(false)
   const [showBannerModal, setShowBannerModal] = useState(false)
   const [showAttendeesModal, setShowAttendeesModal] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)

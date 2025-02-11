@@ -64,9 +64,9 @@ export default function TicketsModal({ isOpen, onClose, eventId, eventTitle }: T
   )
 }
 
-export function getAttendeesCount(eventId: number): number {
-  // This function is no longer needed as we're fetching the count from the API
-  // in the Events component. You can remove this function or keep it as a placeholder.
-  return 0
-}
+// export function getAttendeesCount(eventId: number): number {
+//   // This function is no longer needed as we're fetching the count from the API
+//   // in the Events component. You can remove this function or keep it as a placeholder.
+//   return 0
+// }
 

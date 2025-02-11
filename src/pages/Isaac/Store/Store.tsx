@@ -11,6 +11,8 @@ interface StatCardProps {
   link?: string;
 }
 
+
+
 function StatCard({ title, value, hasViewButton = false, link }: StatCardProps) {
   return (
     <div className="bg-white p-4 rounded-lg text-center component-border ">
@@ -75,14 +77,13 @@ function Tabs({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (t
 
 export default function Store() {
   const [activeTab, setActiveTab] = useState<'orders' | 'store'>('orders');
-  const [filter, setFilter] = useState('all'); // Add filter state
 
   return (
     <div className="bg-white min-h-screen p-6 font-semibold component-border">
       <Header />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === 'orders' ? (
-        <Orders filter={filter} setFilter={setFilter} />
+        <Orders />
       ) : (
         <div className="bg-white rounded-lg p-6 text-center text-gray-500 font-semibold component-border">
           <StoreTab />

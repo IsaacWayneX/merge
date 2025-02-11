@@ -73,6 +73,7 @@ export default function Places() {
   const openActionModal = (place: Place) => {
     setSelectedPlace(place)
     setShowActionModal(true)
+    selectedPlace
   }
 
   const handleAddPlace = (e: FormEvent<HTMLFormElement>) => {
@@ -131,6 +132,7 @@ export default function Places() {
     setBannerFiles([])
     setMenuFile(null)
     setMenuPreviewUrl("")
+    menuPreviewUrl
     setIsEditMode(false)
     setFormData(null)
   }
