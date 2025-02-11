@@ -7,19 +7,12 @@ import Typography from '@mui/material/Typography';
 
 
 interface _Props {
-    // menuItems: {
-    //     title: string;
-    //     status: boolean;
-    //     baseLink: string;
-    // }[],
-    // value: number, 
-    // setValue: (data: number) => void
+    lastSeen: string, 
 };
 
 const LastSeenCardComponent: React.FC<_Props> = ({
-    // menuItems, value, setValue
+    lastSeen
 }) => {
-    // const navigate = useNavigate();
 
 
     return (
@@ -48,7 +41,7 @@ const LastSeenCardComponent: React.FC<_Props> = ({
                         fontSize: "40px",
                         color: kolors.dark
                     }}
-                >51 min</Typography>
+                >{lastSeen}</Typography>
 
             </Box>
         </Box>

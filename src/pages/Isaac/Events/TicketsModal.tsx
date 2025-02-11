@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
+import apiClient from "../utils/apiClient"
 
 interface Attendee {
   id: number
   name: string
-  image: string
-  tickets: number
 }
 
 interface TicketsModalProps {
@@ -15,50 +14,7 @@ interface TicketsModalProps {
   eventTitle: string
 }
 
-const dummyAttendees: Attendee[] = [
-  {
-    id: 1,
-    name: "Ada",
-    image: "https://cdn2.stylecraze.com/wp-content/uploads/2013/06/Different-Beautiful-American-Girls.jpg.webp",
-    tickets: 1,
-  },
-  {
-    id: 2,
-    name: "Michelle",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCG5fSW2o3mPb4IkYaCadpDrLJGQ6FuPGO_VkcfUcB_UFhdKikVk_THjtbrLpVUuMAfKo&usqp=CAU",
-    tickets: 1,
-  },
-  {
-    id: 3,
-    name: "Daniel",
-    image:
-      "https://images.unsplash.com/photo-1672675225389-4d7b6f231f5b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fG5pZ2VyaWFuJTIwbWFufGVufDB8fDB8fHww",
-    tickets: 1,
-  },
-  {
-    id: 4,
-    name: "Embassy",
-    image:
-      "https://images.unsplash.com/photo-1680443418917-df6db955b9e1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzR8fG5pZ2VyaWFuJTIwbWFufGVufDB8fDB8fHww",
-    tickets: 1,
-  },
-  {
-    id: 5,
-    name: "Francis",
-    image:
-      "https://images.unsplash.com/photo-1680443418917-df6db955b9e1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzR8fG5pZ2VyaWFuJTIwbWFufGVufDB8fDB8fHww",
-    tickets: 1,
-  },
-]
-
-// Mock function to filter attendees by eventId
-const getAttendeesByEventId = (eventId: number): Attendee[] => {
-  // In a real application, this would filter based on the eventId
-  // For now, return all dummy attendees
-  console.log(`Fetching attendees for event ${eventId}`)
-  return dummyAttendees
-}
+const AVATAR_URL = "https://cdn1.iconfinder.com/data/icons/avatars-1-5/136/60-512.png"
 
 export default function TicketsModal({ isOpen, onClose, eventId, eventTitle }: TicketsModalProps) {
   const [attendees, setAttendees] = useState<Attendee[]>([])
@@ -67,13 +23,15 @@ export default function TicketsModal({ isOpen, onClose, eventId, eventTitle }: T
     if (isOpen) {
       fetchAttendees()
     }
-  }, [isOpen, eventId])
+  }, [isOpen]) // Removed eventId from dependencies
 
   const fetchAttendees = async () => {
-    // Simulating API call with eventId
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    const filteredAttendees = getAttendeesByEventId(eventId)
-    setAttendees(filteredAttendees)
+    try {
+      const response = await apiClient.get(`admin/event/${eventId}/attendees`)
+      setAttendees(response.data.data)
+    } catch (error) {
+      console.error("Error fetching attendees:", error)
+    }
   }
 
   if (!isOpen) return null
@@ -92,13 +50,12 @@ export default function TicketsModal({ isOpen, onClose, eventId, eventTitle }: T
             <div key={attendee.id} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
-                  src={attendee.image || "/placeholder.svg"}
+                  src={AVATAR_URL || "/placeholder.svg"}
                   alt={attendee.name}
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <span className="font-medium text-gray-900">{attendee.name}</span>
               </div>
-              <span className="text-gray-800">{attendee.tickets}</span>
             </div>
           ))}
         </div>
@@ -108,7 +65,8 @@ export default function TicketsModal({ isOpen, onClose, eventId, eventTitle }: T
 }
 
 export function getAttendeesCount(eventId: number): number {
-  // Now we're using the eventId parameter
-  const attendees = getAttendeesByEventId(eventId)
-  return attendees.length
+  // This function is no longer needed as we're fetching the count from the API
+  // in the Events component. You can remove this function or keep it as a placeholder.
+  return 0
 }
+

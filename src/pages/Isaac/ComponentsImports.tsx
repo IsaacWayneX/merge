@@ -6,13 +6,14 @@ import Bonded from "./Bonded/Bonded";
 import Cars from "./Cars/Cars";
 import Dates from "./Dates/Dates";
 import Store from "./Store/Store";
-import CompletedOrders from "./Store/Order-pages/CompletedOrders";
-import DeclinedOrders from "./Store/Order-pages/DeclinedOrders";
-import PendingOrders from "./Store/Order-pages/PendingOrders";
+import CompletedOrders from "./Store/Order-pages/Completed/CompletedOrders";
+import DeclinedOrders from "./Store/Order-pages/Declined/DeclinedOrders";
+import PendingOrders from "./Store/Order-pages/Pending/PendingOrders";
 import PendingDates from "./Dates/dates/date-details"
 import Subscriptions from "./Subscription/Subscriptions";
 import DeclinedDates from "./Dates/dates/declined-dates";
 import BookedDates from "./Dates/dates/booked-dates";
+import BookedDetails from "./Dates/dates/booked-details";
 
 export {
   Library,
@@ -28,6 +29,7 @@ export {
   PendingDates,
   Subscriptions,
   DeclinedDates,
-  BookedDates
+  BookedDates,
+  BookedDetails
 
 };

@@ -9,17 +9,12 @@ import { themeBtnStyle } from '@/util/mui';
 
 
 interface _Props {
-    // menuItems: {
-    //     title: string;
-    //     status: boolean;
-    //     baseLink: string;
-    // }[],
-    // value: number, 
-    // setValue: (data: number) => void
+    walletBalance: string, 
+    userId: string, 
 };
 
 const WalletBalanceComponent: React.FC<_Props> = ({
-    // menuItems, value, setValue
+    userId, walletBalance
 }) => {
     const navigate = useNavigate();
 
@@ -49,13 +44,12 @@ const WalletBalanceComponent: React.FC<_Props> = ({
                     fontSize: "40px",
                     color: kolors.dark
                 }}
-            >$2,000</Typography>
+            >{walletBalance}</Typography>
 
             <Stack direction="row" spacing="10px" alignItems="center">
                 <Button variant="contained" size='small'
                     type="button"
-                    onClick={() => navigate("/admin/users/_id_2345654321/transaction-history")}
-                    
+                    onClick={() => navigate(`/admin/users/${userId}/transaction-history`)}
                     sx={{
                         ...themeBtnStyle,
                         fontSize: "12px",

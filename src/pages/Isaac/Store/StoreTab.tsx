@@ -1,109 +1,230 @@
-'use client'
-
-import { useState, useRef } from 'react'
-import { Search, Plus, Trash2, X, Upload, ChevronLeft, Star } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from "react"
+import { Search, Plus, Trash2, X, Upload, ChevronLeft, Star } from "lucide-react"
+import apiClient from "../utils/apiClient"
 
 interface Product {
+  id: string
   name: string
   description: string
-  features: string
-  category: string
-  images: string[]
-  color: string
+  store_id: string
+  category_id: string
+  features: string[]
+  colors: string[]
   sizes: string[]
-  price: number
-  inStock: boolean
-  rating: number
+  price: string
+  in_stock: boolean
+  stock: number
+  product_photos: {
+    id: string
+    url: string
+    is_current: boolean
+  }[]
+  category: {
+    id: string
+    name: string
+  }
+  images?: (File | string)[]
 }
 
 interface Category {
   id: string
   name: string
+  created_at: string
+  updated_at: string
+}
+
+interface ApiResponse<T> {
+  statusCode: number
+  message: string
+  data: T
 }
 
 export default function StoreTab() {
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState("")
   const [showAddProductModal, setShowAddProductModal] = useState(false)
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const [showSecondModal, setShowSecondModal] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState('Women')
-  const [newProduct, setNewProduct] = useState<Partial<Product>>({})
-  const [categories, setCategories] = useState<Category[]>([
-    { id: '1', name: 'Women' },
-    { id: '2', name: 'Men' },
-    { id: '3', name: 'Gadgets' },
-    { id: '4', name: 'Beauty/care' },
-    { id: '5', name: 'Footstuff' },
-    { id: '6', name: 'Cars' },
-  ])
+  const [selectedCategory, setSelectedCategory] = useState("Women")
+  const [newProduct, setNewProduct] = useState<Partial<Product>>({
+    images: [],
+    category: { id: "", name: "" },
+  })
+  const [categories, setCategories] = useState<Category[]>([])
   const [selectedColors, setSelectedColors] = useState<string[]>([])
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [showSizePicker, setShowSizePicker] = useState(false)
-  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState("")
+  const [products, setProducts] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const products = Array(10).fill({
-    id: '1',
-    name: 'Grey fitted shirt',
-    price: 40.00,
-    inStock: true,
-    rating: 5.0
-  })
+  useEffect(() => {
+    fetchCategories()
+    fetchProducts()
+  }, [])
 
-  const handleAddCategory = (categoryName: string) => {
-    const newCategory = { id: String(categories.length + 1), name: categoryName };
-    setCategories([...categories, newCategory]);
-    setNewProduct({ ...newProduct, category: categoryName });
-    setShowCategoryModal(false);
-    setShowAddProductModal(false);
+  const fetchCategories = async () => {
+    try {
+      const response = await apiClient.get<ApiResponse<Category[]>>("admin/product/all-categories")
+      setCategories(response.data.data)
+    } catch (error) {
+      setError("Failed to fetch categories")
+      console.error("Error fetching categories:", error)
+    }
+  }
+
+  const fetchProducts = async () => {
+    try {
+      const response = await apiClient.get<ApiResponse<Product[]>>("admin/product/all")
+      setProducts(response.data.data)
+    } catch (error) {
+      setError("Failed to fetch products")
+      console.error("Error fetching products:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleAddCategory = async (categoryName: string) => {
+    try {
+      const response = await apiClient.post<ApiResponse<Category>>("admin/product/new-category", {
+        name: categoryName,
+      })
+      const newCategory = response.data.data
+      setCategories([...categories, newCategory])
+      setNewProduct({
+        ...newProduct,
+        category: { id: newCategory.id, name: newCategory.name },
+      })
+      setShowCategoryModal(false)
+      setShowAddProductModal(false)
+    } catch (error) {
+      setError("Failed to add category")
+      console.error("Error adding category:", error)
+    }
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files) {
-      const imageUrls = Array.from(files).map(file => URL.createObjectURL(file))
-      setNewProduct({ ...newProduct, images: imageUrls })
+      const newImages = Array.from(files)
+      setNewProduct((prev) => ({ ...prev, images: [...(prev.images || []), ...newImages] }))
     }
   }
 
-  const handlePublish = () => {
-    const formData = new FormData();
-    formData.append('name', newProduct.name || '');
-    formData.append('description', newProduct.description || '');
-    formData.append('features', newProduct.features || '');
-    formData.append('category', newProduct.category || '');
-    formData.append('colors', JSON.stringify(selectedColors));
-    formData.append('sizes', JSON.stringify(newProduct.sizes || []));
-    formData.append('price', String(newProduct.price || 0));
-    newProduct.images?.forEach((image, index) => {
-      formData.append(`image${index + 1}`, image);
-    });
+  const handlePublish = async () => {
+    try {
+      const requestData = new FormData()
 
-    console.log('Published Product:', Object.fromEntries(formData));
-    setShowSecondModal(false);
-    setShowAddProductModal(false);
-    setNewProduct({});
-    setSelectedColors([]);
-  };
+      // Ensure required fields exist
+      if (!newProduct.name || !newProduct.description || !newProduct.category?.id) {
+        setError("Please fill all required fields")
+        return
+      }
+
+      requestData.append("name", newProduct.name)
+      requestData.append("description", newProduct.description)
+      requestData.append("features", String(newProduct.features))
+      requestData.append("category_id", newProduct.category.id)
+      requestData.append("price", String(newProduct.price))
+
+      selectedColors.forEach((color, index) => {
+        requestData.append(`color[${index}]`, color)
+      })
+
+      selectedSizes.forEach((size, index) => {
+        requestData.append(`size[${index}]`, size)
+      })
+
+      if (newProduct.images && Array.isArray(newProduct.images)) {
+        newProduct.images.forEach((image, index) => {
+          if (image instanceof File) {
+            requestData.append(`product_image`, image)
+          } else if (typeof image === "string" && image.startsWith("data:image")) {
+            fetch(image)
+              .then((res) => res.blob())
+              .then((blob) => {
+                const file = new File([blob], `image_${index}.jpg`, { type: "image/jpeg" })
+                requestData.append(`product_image`, file)
+              })
+          } else if (typeof image === "string") {
+            // Handle image URLs
+            requestData.append(`existing_images[${index}]`, image)
+          } else {
+            console.warn(`Skipping invalid image at index ${index}`, image)
+          }
+        })
+      }
+
+      console.log("Payload being sent:")
+      requestData.forEach((value, key) => {
+        console.log(`${key}:`, value)
+      })
+
+      const response = await apiClient.post<ApiResponse<Product>>("admin/product/new", requestData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+
+      setProducts([...products, response.data.data])
+      setShowSecondModal(false)
+      setShowAddProductModal(false)
+      setNewProduct({ images: [], category: { id: "", name: "" } })
+      setSelectedColors([])
+      setSelectedSizes([])
+    } catch (error) {
+      setError("Failed to add product")
+      console.error("Error adding product:", error)
+    }
+  }
+
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await apiClient.delete(`admin/product/delete/${id}`)
+      setProducts(products.filter((product) => product.id !== id))
+    } catch (error) {
+      setError("Failed to delete product")
+      console.error("Error deleting product:", error)
+    }
+  }
+
+  const handleStockStatusChange = useCallback(async (productId: string, newStatus: string) => {
+    try {
+      await apiClient.post("admin/product/stock", {
+        id: productId,
+        stock: newStatus === "inStock" ? "in_stock" : "out_of_stock",
+      })
+
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === productId ? { ...product, in_stock: newStatus === "inStock" } : product,
+        ),
+      )
+    } catch (error) {
+      setError("Failed to update stock status")
+      console.error("Error updating stock status:", error)
+    }
+  }, [])
 
   return (
     <>
-    
       <div className="space-y-4">
         {/* main content */}
         {/* Search and Filter Bar */}
-        <div className="flex items-center gap-4">
-          <select 
+        <div className="flex items-center gap-4 bg-gray-200">
+          <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-2 bg-[#5E17EB] text-white rounded-md appearance-none cursor-pointer pr-10 relative"
             style={{
               backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 1rem center',
-              backgroundSize: '1em'
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 1rem center",
+              backgroundSize: "1em",
             }}
           >
             {categories.map((category) => (
@@ -133,45 +254,56 @@ export default function StoreTab() {
 
         {/* Product Grid */}
         <div className="grid grid-cols-5 gap-4">
-          {products.map((product, index) => (
-            <div key={index} className="bg-white rounded-2xl shadow overflow-hidden">
-              <div className="relative">
-                <img 
-                  src="/placeholder.svg?height=300&width=300"
-                  alt={product.name} 
-                  className="w-full aspect-square object-cover"
-                />
-                <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100">
-                  <Trash2 size={20} className="text-gray-600" />
-                </button>
-              </div>
-              <div className="flex flex-col">
-                <select 
-                  defaultValue="inStock"
-                  className="w-full px-4 py-3 bg-[#5E17EB] text-white appearance-none cursor-pointer relative text-center font-medium rounded-b-2xl"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 1rem center',
-                    backgroundSize: '1em'
-                  }}
-                >
-                  <option value="inStock">In stock</option>
-                  <option value="outOfStock">Out of stock</option>
-                </select>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
-                    <div className="flex items-center">
-                      <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                      <span className="ml-1 text-sm text-gray-600">{product.rating}</span>
+          {isLoading ? (
+            <p>Loading products...</p>
+          ) : error ? (
+            <p>{error}</p>
+          ) : (
+            products.map((product) => (
+              <div key={product.id} className="bg-white rounded-2xl shadow overflow-hidden">
+                <div className="relative">
+                  <img
+                    src={product.product_photos[1]?.url || "/placeholder.svg"}
+                    alt={product.name}
+                    className="w-full aspect-square object-cover"
+                  />
+                  <button
+                    className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100"
+                    onClick={() => handleDeleteProduct(product.id)}
+                  >
+                    <Trash2 size={20} className="text-gray-600" />
+                  </button>
+                </div>
+                <div className="flex flex-col">
+                  <select
+                    defaultValue={product.in_stock ? "inStock" : "outOfStock"}
+                    onChange={(e) => handleStockStatusChange(product.id, e.target.value)}
+                    className="w-full px-4 py-3 bg-[#5E17EB] text-white appearance-none cursor-pointer relative text-center font-medium rounded-b-2xl"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 1rem center",
+                      backgroundSize: "1em",
+                    }}
+                  >
+                    <option value="inStock">In stock</option>
+                    <option value="outOfStock">Out of stock</option>
+                  </select>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
+                      <div className="flex items-center">
+                        <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                        <span className="ml-1 text-sm text-gray-600">{product.stock}</span>
+                      </div>
                     </div>
+                    <p className="text-lg font-bold text-gray-900">${Number.parseFloat(product.price).toFixed(2)}</p>{" "}
+                    {/* Updated price display */}
                   </div>
-                  <p className="text-lg font-bold text-gray-900">${product.price.toFixed(2)}</p>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -185,18 +317,24 @@ export default function StoreTab() {
                   className="px-4 py-2 bg-[#5E17EB] text-white rounded-md appearance-none cursor-pointer pr-10 relative min-w-[120px]"
                   style={{
                     backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.5rem center',
-                    backgroundSize: '1em'
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0.5rem center",
+                    backgroundSize: "1em",
                   }}
                   onChange={(e) => {
-                    if (e.target.value === 'create') {
-                      setShowCategoryModal(true);
+                    if (e.target.value === "create") {
+                      setShowCategoryModal(true)
                     } else {
-                      setNewProduct({ ...newProduct, category: e.target.value });
+                      const selectedCategory = categories.find((c) => c.name === e.target.value)
+                      setNewProduct({
+                        ...newProduct,
+                        category: selectedCategory
+                          ? { id: selectedCategory.id, name: selectedCategory.name }
+                          : { id: "", name: "" },
+                      })
                     }
                   }}
-                  value={newProduct.category || ''}
+                  value={newProduct.category?.name || ""}
                 >
                   <option value="">Select Category</option>
                   {categories.map((category) => (
@@ -204,7 +342,7 @@ export default function StoreTab() {
                       {category.name}
                     </option>
                   ))}
-                  <option value="create" >+ Create new category</option>
+                  <option value="create">+ Create new category</option>
                 </select>
                 <button onClick={() => setShowAddProductModal(false)}>
                   <X size={20} />
@@ -216,7 +354,7 @@ export default function StoreTab() {
                     type="text"
                     placeholder="Product name"
                     className="w-full p-3 border border-gray-200 rounded-md"
-                    value={newProduct.name || ''}
+                    value={newProduct.name || ""}
                     onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                   />
                 </div>
@@ -225,7 +363,7 @@ export default function StoreTab() {
                     type="text"
                     placeholder="Product description"
                     className="w-full p-3 border border-gray-200 rounded-md"
-                    value={newProduct.description || ''}
+                    value={newProduct.description || ""}
                     onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                   />
                 </div>
@@ -233,8 +371,8 @@ export default function StoreTab() {
                   <textarea
                     placeholder="Create a list of features for this product"
                     className="w-full p-3 border border-gray-200 rounded-md min-h-[120px]"
-                    value={newProduct.features || ''}
-                    onChange={(e) => setNewProduct({ ...newProduct, features: e.target.value })}
+                    value={newProduct.features || ""}
+                    onChange={(e) => setNewProduct({ ...newProduct, features: e.target.value.split(",") })}
                   />
                 </div>
               </div>
@@ -279,8 +417,8 @@ export default function StoreTab() {
               <button
                 onClick={() => {
                   if (newCategoryName.trim()) {
-                    handleAddCategory(newCategoryName.trim());
-                    setNewCategoryName('');
+                    handleAddCategory(newCategoryName.trim())
+                    setNewCategoryName("")
                   }
                 }}
                 className="w-full py-3 bg-[#5E17EB] text-white rounded-md font-medium"
@@ -298,11 +436,11 @@ export default function StoreTab() {
           <div className="bg-white rounded-lg w-[400px]">
             <div className="p-4">
               <div className="flex justify-between items-center mb-6">
-                <button 
+                <button
                   onClick={() => {
                     setShowSecondModal(false)
                     setShowAddProductModal(true)
-                  }} 
+                  }}
                   className="flex items-center text-gray-600"
                 >
                   <ChevronLeft size={20} className="mr-2" />
@@ -314,15 +452,17 @@ export default function StoreTab() {
               </div>
               <div className="space-y-4">
                 <div className="space-y-4">
+                  {/* Upload Button */}
                   <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center">
                     <input
                       type="file"
                       multiple
+                      accept="image/*"
                       onChange={handleImageUpload}
                       className="hidden"
                       ref={fileInputRef}
                     />
-                    <button 
+                    <button
                       onClick={() => fileInputRef.current?.click()}
                       className="w-full h-20 flex items-center justify-center"
                     >
@@ -330,13 +470,21 @@ export default function StoreTab() {
                       <p className="text-sm text-gray-500 ml-2">Click to upload</p>
                     </button>
                   </div>
+
+                  {/* Image Preview */}
                   <div className="flex gap-2 overflow-x-auto">
                     {newProduct.images?.map((image, index) => (
                       <div key={index} className="w-16 h-16 flex-shrink-0">
-                        <img src={image || "/placeholder.svg"} alt={`Preview ${index + 1}`} className="w-full h-full object-cover rounded-lg" />
+                        <img
+                          src={image instanceof File ? URL.createObjectURL(image) : image}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
                       </div>
                     ))}
-                    {newProduct.images && newProduct.images.length < 3 && (
+
+                    {/* Upload More Button (if less than 3 images) */}
+                    {(newProduct.images?.length || 0) < 3 && (
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         className="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-200"
@@ -359,10 +507,11 @@ export default function StoreTab() {
                   {showColorPicker && (
                     <div className="space-y-3">
                       <div className="relative w-full h-12 mb-3">
-                        <div 
+                        <div
                           className="absolute inset-0 rounded-lg"
                           style={{
-                            background: 'linear-gradient(to right, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #8F00FF)'
+                            background:
+                              "linear-gradient(to right, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #8F00FF)",
                           }}
                         />
                         <input
@@ -370,25 +519,17 @@ export default function StoreTab() {
                           className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
                           onChange={(e) => {
                             if (!selectedColors.includes(e.target.value)) {
-                              setSelectedColors(colors => [...colors, e.target.value])
+                              setSelectedColors((colors) => [...colors, e.target.value])
                             }
                           }}
                         />
                       </div>
                       <div className="flex flex-wrap gap-2 mt-3">
                         {selectedColors.map((color, index) => (
-                          <div 
-                            key={index}
-                            className="flex items-center gap-1 bg-gray-100 rounded-md p-1 pr-2"
-                          >
-                            <div 
-                              className="w-6 h-6 rounded" 
-                              style={{ backgroundColor: color }}
-                            />
+                          <div key={index} className="flex items-center gap-1 bg-gray-100 rounded-md p-1 pr-2">
+                            <div className="w-6 h-6 rounded" style={{ backgroundColor: color }} />
                             <button
-                              onClick={() => setSelectedColors(colors => 
-                                colors.filter((_, i) => i !== index)
-                              )}
+                              onClick={() => setSelectedColors((colors) => colors.filter((_, i) => i !== index))}
                               className="text-gray-500 hover:text-gray-700"
                             >
                               <X size={14} />
@@ -411,7 +552,7 @@ export default function StoreTab() {
                   </button>
                   {showSizePicker && (
                     <div className="flex gap-2">
-                      {['S', 'M', 'L', 'XL'].map((size) => (
+                      {["S", "M", "L", "XL"].map((size) => (
                         <label key={size} className="flex-1">
                           <input
                             type="checkbox"
@@ -419,9 +560,9 @@ export default function StoreTab() {
                             checked={selectedSizes.includes(size)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSelectedSizes(prev => [...prev, size]);
+                                setSelectedSizes((prev) => [...prev, size])
                               } else {
-                                setSelectedSizes(prev => prev.filter(s => s !== size));
+                                setSelectedSizes((prev) => prev.filter((s) => s !== size))
                               }
                             }}
                           />
@@ -439,17 +580,14 @@ export default function StoreTab() {
                     type="number"
                     placeholder="Product price"
                     className="w-full p-3 border border-gray-200 rounded-md"
-                    value={newProduct.price || ''}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
+                    value={newProduct.price || ""}
+                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} // Updated price input
                   />
                 </div>
               </div>
             </div>
             <div className="p-4 mt-4">
-              <button
-                onClick={handlePublish}
-                className="w-full py-3 bg-[#5E17EB] text-white rounded-md font-medium"
-              >
+              <button onClick={handlePublish} className="w-full py-3 bg-[#5E17EB] text-white rounded-md font-medium">
                 Publish
               </button>
             </div>

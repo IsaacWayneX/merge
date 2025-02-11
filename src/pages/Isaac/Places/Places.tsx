@@ -6,7 +6,7 @@ import Places1 from "./Places1"
 import { Search, Bell } from "lucide-react"
 
 export default function Places() {
-  const [activeTab, setActiveTab] = useState("events")
+  const [activeTab, setActiveTab] = useState("places")
 
   return (
     <div className="bg-white min-h-screen w-full p-6 component-border">

@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 // import { useUserStore } from '@/state/userStore';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -11,19 +12,47 @@ import TableHead from '@mui/material/TableHead';
 import TableContainer from '@mui/material/TableContainer';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
 import NotificationComponent from '@/components/sunday/NotificationComponent';
 import SearchwordComponent from '@/components/sunday/SearchwordComponent';
 import dytTokenIcon from '@/assets/images/dytTokenIcon.png';
+import { useUsersHook } from '@/hooks/users/useUsersHook';
+import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
+import TablePagination from '@mui/material/TablePagination';
+import EmptyListComponent from '@/components/EmptyList';
+import LoadingDataComponent from '@/components/LoadingData';
 
 
 
 const UserDytTokenTransactionsPage = () => {
     const navigate = useNavigate();
+    const {id} = useParams();
+
+    const {
+        // apiResponse, setApiResponse,
+
+        limitNo, setLimitNo,
+        currentPageNo,
+        totalRecords,
+        // totalPages,
+
+        // isSubmitting,
+
+        dytTransactions,
+        getUserDytTransactionHistory,
+    } = useUsersHook();
+
+
+    useEffect(() => {
+        if (id) {
+            getUserDytTransactionHistory(id, currentPageNo, limitNo);
+        } else {
+            navigate(-1);
+        }
+    }, []);
+
     
     const handleSearch = (searchword: string) => {
         console.log(searchword);
@@ -54,9 +83,7 @@ const UserDytTokenTransactionsPage = () => {
             <Stack direction='row' spacing='10px' mt={3}
                 alignItems="center" justifyContent="space-between"
             >
-                <IconButton size='small' onClick={() => navigate(-1)}>
-                    <ArrowBackIosIcon sx={{ fontSize: "18px", color: kolors.border }} />
-                </IconButton>
+                <BackNavigationArrowBtn />
 
                 <Box>
                     <Select
@@ -266,6 +293,39 @@ const UserDytTokenTransactionsPage = () => {
 
                         </Table>
                     </TableContainer>
+
+
+                    {
+                        dytTransactions ?
+                            dytTransactions.length ? <></>
+                            : <Box my={5}>
+                                <EmptyListComponent notFoundText='No record found.' />
+                            </Box>
+                        : <Box my={5}>
+                            <LoadingDataComponent />
+                        </Box>
+                    }
+
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                        component="div"
+                        count={totalRecords} // totalRecords
+                        rowsPerPage={limitNo}
+                        page={currentPageNo -1}
+                        onPageChange={(_e, page)=> {
+                            // console.log(page);
+    
+                            const newPage = page + 1;
+                            getUserDytTransactionHistory(id || '', newPage, limitNo);
+                        }}
+                        onRowsPerPageChange={(e) => {
+                            const value = e.target.value;
+                            // console.log(value);
+    
+                            setLimitNo(Number(value));
+                            getUserDytTransactionHistory(id || '', currentPageNo, Number(value));
+                        }}
+                    />
                 </Box>
             </Box>
             

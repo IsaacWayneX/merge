@@ -10,17 +10,13 @@ import { TopUpModal } from './TopUpModal';
 
 
 interface _Props {
-    // menuItems: {
-    //     title: string;
-    //     status: boolean;
-    //     baseLink: string;
-    // }[],
-    // value: number, 
+    tokenBalance: string, 
+    userId: string, 
     // setValue: (data: number) => void
 };
 
 const TokenBalanceComponent: React.FC<_Props> = ({
-    // menuItems, value, setValue
+    userId, tokenBalance
 }) => {
     const navigate = useNavigate();
     const [topUpModal, setTopUpModal] = useState(false);
@@ -55,7 +51,7 @@ const TokenBalanceComponent: React.FC<_Props> = ({
                         fontSize: "40px",
                         color: kolors.dark
                     }}
-                >2,000</Typography>
+                >{ tokenBalance }</Typography>
 
                 <Stack direction="row" spacing="10px" alignItems="center">
                     <Button variant="contained" size='small'
@@ -74,8 +70,7 @@ const TokenBalanceComponent: React.FC<_Props> = ({
 
                     <Button variant="contained" size='small'
                         type="button"
-                        onClick={() => navigate("/admin/users/_id_2345654321/dyt-token-transactions")}
-                        
+                        onClick={() => navigate(`/admin/users/${userId}/dyt-token-transactions`)}
                         sx={{
                             ...themeBtnStyle,
                             fontSize: "12px",

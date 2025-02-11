@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -11,20 +11,34 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import PlaceIcon from '@mui/icons-material/Place';
+import { useUsersHook } from '@/hooks/users/useUsersHook';
+import LoadingDataComponent from '@/components/LoadingData';
+import EmptyListComponent from '@/components/EmptyList';
 
 
 
 interface _Props {
     openTravelLocationsModal: boolean,
     closeTravelLocationsModal: (state: boolean) => void,
-    travelLocations: string[],
+    userId: string;
 }
 
 export const TravelLocationModal: React.FC<_Props> = ({
-    openTravelLocationsModal, closeTravelLocationsModal, travelLocations
+    openTravelLocationsModal, closeTravelLocationsModal, userId
 }) => {
- 
-    
+    const {
+        // apiResponse, setApiResponse,
+        userTravelLocations,
+        getUserTravelLocations,
+    } = useUsersHook();
+
+
+    useEffect(() => {
+        if (openTravelLocationsModal) {
+            getUserTravelLocations(userId);
+        }
+    }, [openTravelLocationsModal]);
+
 
     return (
         <Modal
@@ -83,22 +97,34 @@ export const TravelLocationModal: React.FC<_Props> = ({
                     </Box>
 
                     <Box id='payout-modal-description'>
-                        <List dense={false}>
-                            {
-                                travelLocations.map((location, index) => (
-                                    <ListItem key={index}>
-                                        <ListItemIcon>
-                                            <PlaceIcon sx={{ color: kolors.primary, fontSize: "18px" }}/>
-                                        </ListItemIcon>
-                                        
-                                        <ListItemText
-                                            primary={location}
-                                        />
-                                    </ListItem>
-                                ))
-                                
-                            }
-                        </List> 
+                        {
+                            userTravelLocations ? 
+                                <List dense={false}>
+                                    {
+                                        userTravelLocations.length ?
+                                            userTravelLocations.map((location, index) => (
+                                                <ListItem key={index}>
+                                                    <ListItemIcon>
+                                                        <PlaceIcon sx={{ color: kolors.primary, fontSize: "18px" }}/>
+                                                    </ListItemIcon>
+                                                    
+                                                    <ListItemText
+                                                        primary={location.city + " " + location.country}
+                                                    />
+                                                </ListItem>
+                                            ))
+
+                                        : <Box width="100%" my={5}>
+                                            <EmptyListComponent 
+                                                notFoundText='No record found.'
+                                            />
+                                        </Box>
+                                    }
+                                </List> 
+                            : <Box width="100%" my={5}>
+                                <LoadingDataComponent />
+                            </Box>
+                        }
                     </Box>
                 </Box>
             </Box>

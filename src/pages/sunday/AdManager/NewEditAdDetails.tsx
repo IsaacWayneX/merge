@@ -1,41 +1,21 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import kolors from '@/constants/kolors';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
-import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Checkbox from '@mui/material/Checkbox';
-
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import NotificationComponent from '@/components/sunday/NotificationComponent';
 // import mtnLogo from "@/assets/images/mtn2.png";
 import NewEditBannerAdsComponent from '@/components/sunday/AdManager/NewEditBannerAds';
 import NewEditInprofileAdsComponent from '@/components/sunday/AdManager/NewEditInprofileAds';
+import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
+import { themeBtnStyle } from '@/util/mui';
 
-
-// const top100Films = [
-//     { label: 'The Shawshank Redemption', year: 1994 },
-//     { label: 'The Godfather', year: 1972 },
-//     { label: 'The Godfather: Part II', year: 1974 },
-//     { label: 'The Dark Knight', year: 2008 },
-//     { label: '12 Angry Men', year: 1957 },
-//     { label: "Schindler's List", year: 1993 },
-//     { label: 'Pulp Fiction', year: 1994 },
-//     {
-//       label: 'The Lord of the Rings: The Return of the King',
-//       year: 2003,
-//     },
-//     { label: 'The Good, the Bad and the Ugly', year: 1966 },
-//     { label: 'Fight Club', year: 1999 },
-//     {
-//       label: 'The Lord of the Rings: The Fellowship of the Ring',
-//       year: 2001,
-//     },
-// ];
 
 function toggleStringInArray(array: string[], newValue: string) {
     // Find the index of the string in the array
@@ -55,20 +35,12 @@ function toggleStringInArray(array: string[], newValue: string) {
 const bannerAdsValue = ["Places", "Books", "Events"];
 
 const NewEditAdDetailsPage = () => {
-    const navigate = useNavigate();
-    // const {_id} = useParams();
+    // const navigate = useNavigate();
+    // const {id} = useParams();
 
     const [selectedPlacement, setSelectedPlacement] = useState("Placement");
     const [bannerAdsLocation, setBannerAdsLocation] = useState<string[]>([]);
-    // const [value, setValue] = useState<number>(30);
 
-    // const handleChange = (_event: Event, newValue: number | number[]) => {
-    //     setValue(newValue as number);
-
-    //     console.log(_id);
-        
-    // };
-  
 
     const [placementAnchorEl, setPlacementAnchorEl] = useState<null | HTMLElement>(null);
     const openPlacementMenu = Boolean(placementAnchorEl);
@@ -78,22 +50,7 @@ const NewEditAdDetailsPage = () => {
     const handleClosePlacement = () => {
         setPlacementAnchorEl(null);
     };
-
-    // const [iconInputValue, setIconInputValue] = useState('');
-    // // const [inputIconImage, setInputIconImage] = useState<any>();
-
-
-    // const handleFileUpload = async (e: any) => {
-    //     const file = e.target.files[0]; 
-    //     // setInputIconImage(file);
-
-    //     const base64 = await convertToBase64(file);
-    //     console.log(base64.result);
-    //     setIconInputValue(base64.result);
     
-    //     e.target.value = "";
-    // }
-
 
     
     return (
@@ -102,16 +59,14 @@ const NewEditAdDetailsPage = () => {
                 border: `1px solid ${kolors.border}`,
                 bgcolor: "#fff",
                 borderRadius: 2,
-                p: 2,
-                my: 3
+                p: 2, my: 3,
+                minHeight: "90dvh",
             }}
         >
             <Stack direction='row' gap='10px' flexWrap="wrap"
                 alignItems="center" justifyContent="space-between"
             >
-                <IconButton size='small' onClick={() => navigate(-1)}>
-                    <NavigateBeforeIcon sx={{ fontSize: "24px" }} />
-                </IconButton>
+                <BackNavigationArrowBtn />
 
                 <NotificationComponent />
             </Stack>
@@ -125,6 +80,10 @@ const NewEditAdDetailsPage = () => {
                         aria-haspopup="true"
                         aria-expanded={openPlacementMenu ? 'true' : undefined}
                         onClick={handleClickPlacement}
+                        endIcon={<ArrowDropDownIcon />}
+                        sx={{
+                            ...themeBtnStyle
+                        }}
                     > { selectedPlacement } </Button>
 
                     <Menu
@@ -221,9 +180,13 @@ const NewEditAdDetailsPage = () => {
                 <Box maxWidth="520px" mx="auto">
                     {
                         selectedPlacement == "Inprofile Ads" ?
-                            <NewEditInprofileAdsComponent />
+                            <NewEditInprofileAdsComponent 
+                                adsPlacement={"Inprofile Ads"} 
+                            />
                         :
-                            <NewEditBannerAdsComponent />
+                            <NewEditBannerAdsComponent 
+                                adsPlacement={bannerAdsLocation.toString() || selectedPlacement} 
+                            />
                     }
 
                 </Box>

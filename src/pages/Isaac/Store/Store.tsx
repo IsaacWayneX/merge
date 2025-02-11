@@ -53,7 +53,7 @@ function Header() {
 
 function Tabs({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (tab: 'orders' | 'store') => void }) {
   return (
-    <div className="border border-gray-200 mb-6 mt-8 rounded-lg bg-gray-200 p-2.5 shadow ">
+    <div className="mb-4 mt-6 rounded-lg p-0.5 ">
 
       <nav className="flex gap-4">
         <button 

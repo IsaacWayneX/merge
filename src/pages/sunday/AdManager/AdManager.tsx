@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -10,8 +10,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemButton from '@mui/material/ListItemButton';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import AddIcon from '@mui/icons-material/Add';
 import TuneIcon from '@mui/icons-material/Tune';
 import IconButton from '@mui/material/IconButton';
@@ -22,30 +20,14 @@ import NotificationComponent from '@/components/sunday/NotificationComponent';
 import SearchwordComponent from '@/components/sunday/SearchwordComponent';
 import { themeBtnStyle } from '@/util/mui';
 
-import mtnLogo from "@/assets/images/mtn2.png";
+// import mtnLogo from "@/assets/images/mtn2.png";
+import { CustomTabContentPanel } from '@/components/sunday/CustomTabContentPanel';
+import { useAdvertiseHook } from '@/hooks/advertise/useAdvertiseHook';
+import EmptyListComponent from '@/components/EmptyList';
+import LoadingDataComponent from '@/components/LoadingData';
+import { advertiseInterface } from '@/typeInterfaces/advertise.interface';
+import CustomTabsHeaderBar from '@/components/sunday/CustomTabsHeaderBar';
 
-
-interface TabPanelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-}
-  
-function CustomTabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props;
-  
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`simple-tabpanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
-            {...other}
-        >
-            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-        </div>
-    );
-}
 
 const AdManagerPage = () => {
     const navigate = useNavigate();
@@ -54,13 +36,29 @@ const AdManagerPage = () => {
     const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
     const openFilterMenu = Boolean(filterAnchorEl);
     const handleClickFilter = (event: React.MouseEvent<HTMLButtonElement>) => {
-      setFilterAnchorEl(event.currentTarget);
+        setFilterAnchorEl(event.currentTarget);
     };
     const handleCloseFilter = () => {
-      setFilterAnchorEl(null);
+        setFilterAnchorEl(null);
     };
 
-    
+
+    const { 
+        pendingAdvertisement, 
+        liveAdvertisement, 
+        getPendingAdvertisements,
+        getLiveAdvertisements,
+    } = useAdvertiseHook();
+
+    useEffect(() => {
+        if (tabsValue == 0) {
+            getPendingAdvertisements();
+        } else if (tabsValue == 1) {
+            getLiveAdvertisements();
+        } else {
+            
+        }
+    }, [tabsValue]);
 
 
     return (
@@ -70,7 +68,8 @@ const AdManagerPage = () => {
                 bgcolor: "#fff",
                 borderRadius: 2,
                 p: 2,
-                my: 3
+                my: 3,
+                minHeight: "90dvh",
             }}
         >
             <Stack direction='row' gap='10px' flexWrap="wrap"
@@ -127,87 +126,86 @@ const AdManagerPage = () => {
                                     }}
                                 >
                                     <MenuItem onClick={() => {
-
                                         handleCloseFilter();
                                     }}
                                     >All</MenuItem>
-                                    <MenuItem onClick={() => {
 
+                                    <MenuItem onClick={() => {
                                         handleCloseFilter();
                                     }}
                                     >Inprofile</MenuItem>
-                                    <MenuItem onClick={() => {
 
+                                    <MenuItem onClick={() => {
                                        handleCloseFilter(); 
                                     }}>Banner</MenuItem>
                                 </Menu>
                             </div>
                         : <></>
                     }
-
-
                 </Stack>
 
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 3 }}>
-                    <Tabs 
-                        value={tabsValue}
-                        onChange={(_e, newValue) => {
-                            setTabsValue(newValue);
-                        }} 
-                        aria-label="basic tabs example"
-                        textColor="secondary"
-                        indicatorColor="secondary"
-                      
-                    >
-                        <Tab label="Ad review" 
-                            id="simple-tab-0"
-                            aria-controls="simple-tabpanel-0"
-                        />
-
-                        <Tab label="Live Ads" 
-                            id="simple-tab-1"
-                            aria-controls="simple-tabpanel-1"
-                        />
-                    </Tabs>
+                    <CustomTabsHeaderBar 
+                        currentValue={tabsValue}
+                        setValue={setTabsValue}
+                        title={["Ad review", "Live Ads"]}
+                    />
                 </Box>
 
-                <CustomTabPanel value={tabsValue} index={0}>
-                    <List disablePadding >
-                        <AdsComponent 
-                            onClick={() => navigate("review-details")}
-                        />
-                        <AdsComponent 
-                            onClick={() => navigate("review-details")}
-                        />
-                        <AdsComponent 
-                            onClick={() => navigate("review-details")}
-                        />
-                        <AdsComponent 
-                            onClick={() => navigate("review-details")}
-                        />
-                    </List>
-                </CustomTabPanel>
+                {/* Ad review */}
+                <CustomTabContentPanel value={tabsValue} index={0}>
+                    {
+                        pendingAdvertisement ? 
+                            pendingAdvertisement.length ? 
+                                <List disablePadding >
+                                    {
+                                        pendingAdvertisement.map((item) => (
+                                            <AdsComponent 
+                                                key={item.id}
+                                                onClick={() => navigate(`review-details?id=${item.id}`)}
+                                                adsData={item}
+                                            />
+                                        ))
+                                    }
+                                </List>
+                            : <Box my={5}>
+                                <EmptyListComponent 
+                                    notFoundText='No ad found.'
+                                />
+                            </Box>
+                        : <Box>
+                            <LoadingDataComponent />
+                        </Box>
+                    }
+                </CustomTabContentPanel>
 
-                <CustomTabPanel value={tabsValue} index={1}>
-                    <List disablePadding >
-                        <AdsComponent 
-                            btnText='View details' 
-                            onClick={() => navigate("live-details")}
-                        />
-                        <AdsComponent 
-                            btnText='View details' 
-                            onClick={() => navigate("live-details")}
-                        />
-                        <AdsComponent 
-                            btnText='View details' 
-                            onClick={() => navigate("live-details")}
-                        />
-                        <AdsComponent 
-                            btnText='View details' 
-                            onClick={() => navigate("live-details")}
-                        />
-                    </List>
-                </CustomTabPanel>
+                {/* live ads */}
+                <CustomTabContentPanel value={tabsValue} index={1}>
+                    {
+                        liveAdvertisement ? 
+                            liveAdvertisement.length ? 
+                                <List disablePadding >
+                                    {
+                                        liveAdvertisement.map((item) => (
+                                            <AdsComponent 
+                                                key={item.id}
+                                                btnText='View details' 
+                                                adsData={item}
+                                                onClick={() => navigate(`live-details?id=${item.id}`)}
+                                            />
+                                        ))
+                                    }
+                                </List>
+                            : <Box my={5}>
+                                <EmptyListComponent 
+                                    notFoundText='No ad found.'
+                                />
+                            </Box>
+                        : <Box>
+                            <LoadingDataComponent />
+                        </Box>
+                    }
+                </CustomTabContentPanel>
             </Box>
             
         </Box>
@@ -218,22 +216,21 @@ export default AdManagerPage;
 
 
 interface _Props {
-    // performSearch: (searchword: string) => void,
+    adsData: advertiseInterface;
     btnText?: string;
-    onClick: (data: any) => void,
+    onClick: (data: advertiseInterface) => void,
 };
 
 const AdsComponent: React.FC<_Props> = ({
-    btnText = "View", onClick
+    btnText = "View", adsData, onClick
 }) => {
-
 
     return (
         <ListItem alignItems="flex-start"
             secondaryAction={
                 <Button variant="contained" size='small'
                     type="button"
-                    onClick={() => onClick("")}
+                    onClick={() => onClick(adsData)}
                     
                     sx={{
                         ...themeBtnStyle,
@@ -244,11 +241,11 @@ const AdsComponent: React.FC<_Props> = ({
                 >{ btnText }</Button>
             }
         >
-            <ListItemButton onClick={() => onClick("")}>
+            <ListItemButton onClick={() => onClick(adsData)}>
                 <ListItemAvatar>
                     <Avatar variant="square"
                         alt="ads manager" 
-                        src={mtnLogo}
+                        src={adsData.image_url}
                         sx={{ 
                             width: "auto", 
                             height: "auto",
@@ -261,8 +258,8 @@ const AdsComponent: React.FC<_Props> = ({
 
                 <Box px={2}>
                     <ListItemText
-                        primary="MTN every where you go"
-                        secondary="Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat sit quibusdam quas possimus. Ullam blanditiis aut tempora debitis placeat in eligendi fugit? Aut aperiam et natus voluptatibus harum iusto tempore?"
+                        primary={adsData.title || ""} 
+                        secondary={adsData.description || "" }
                     />
                 </Box>
             </ListItemButton>

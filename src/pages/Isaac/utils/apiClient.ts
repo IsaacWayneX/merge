@@ -24,7 +24,6 @@ apiClient.interceptors.request.use(
     }
 );
 
-// Response interceptor to handle token refresh
 apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -36,6 +35,8 @@ apiClient.interceptors.response.use(
 
             try {
                 console.log("Access token expired. Refreshing...");
+                console.log("Current refresh token:", refreshToken); // Log refresh token
+
                 const refreshResponse = await axios.get(
                     `${API_BASE_URL}admin/auth/refresh`,
                     {
@@ -63,5 +64,6 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
 
 export default apiClient;

@@ -1,407 +1,576 @@
-// import axios from "axios";
-// import { useCallback, useState } from "react";
-// import { useUserStore } from "@/state/userStore";
-// import { apiEndpoint } from "@/util/resources";
-// import { useSettingStore } from "@/state/settingStore";
-// import { userInterface } from "@/typeInterfaces/users.interface";
-// import { useGeneralStore } from "@/state/generalStore";
-// import { releaseInterface } from "@/typeInterfaces/release.interface";
-// import { recordLabelArtistInterface } from "@/typeInterfaces/recordLabelArtist.interface";
+import { useCallback, useState } from "react";
+import axios from "axios";
+import { useUserStore } from "@/state/userStore";
+import { apiEndpoint } from "@/util/resources";
+import { useSettingStore } from "@/state/settingStore";
+import { usersDetailsInterface, usersListInterface, userTravelLocationInterface } from "@/typeInterfaces/users.interface";
 
 
-// type topStatsInterface = userInterface & {releaseCount: number};
 
-// export function useUsersHook() {
-//     const accessToken = useUserStore((state) => state.accessToken);
+interface transactionPaymentsInterfcae {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    payer_id: string;
+    target_id: string;
+    target_type: string;
+    transaction_id: string;
+    amount: string;
+    currency: string;
+    status: string;
+    payment_url: string;
+    payment_provider: string;
+}
+interface transactionWithrawalsInterfcae {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    user_id: string;
+    bank_id: string;
+    paypal_id: string;
+    amount: string;
+    method: string;
+    withdrawal_status: string;
+}
 
-//     const [limitNo, setLimitNo] = useState(25);
-//     const [currentPageNo, setCurrentPageNo] = useState(1);
-//     const [totalRecords, setTotalRecords] = useState(0);
-//     const [totalPages, setTotalPages] = useState(1);
-//     const [isSubmitting, setIsSubmitting] = useState(false);
 
-//     const [users, setUsers] = useState<userInterface[]>([]);
-//     const [topUserBalances, setTopUserBalances] = useState<topStatsInterface[]>();
-//     const [topReleases, setTopReleases] = useState<topStatsInterface[]>();
-//     const [artistReleases, setArtistReleases] = useState<releaseInterface[]>();
-//     const [releases, setReleases] = useState<releaseInterface[]>();
-//     const [rlArtists, setRlArtists] = useState<recordLabelArtistInterface[]>();
-//     const [rlArtistsCount, setRlArtistsCount] = useState<number>(0);
-//     const [releaseCount, setReleaseCount] = useState<number>(0);
+export function useUsersHook() {
+    const refreshToken = useUserStore((state) => state.refreshToken);
+    const accessToken = useUserStore((state) => state.accessToken);
+    const _setToastNotification = useSettingStore((state) => state._setToastNotification);
+    const [apiResponse, setApiResponse] = useState({
+        display: false,
+        status: true,
+        message: ""
+    });
+
+    const [limitNo, setLimitNo] = useState(25);
+    const [currentPageNo, setCurrentPageNo] = useState(1);
+    const [totalRecords, setTotalRecords] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [users, setUsers] = useState<usersListInterface[]>();
+    const [selectedUserDetails, setSelectedUserDetails] = useState<usersDetailsInterface>();
+    const [userTravelLocations, setUserTravelLocations] = useState<userTravelLocationInterface[]>();
+    const [transactionPayments, setTransactionPayments] = useState<transactionPaymentsInterfcae[]>();
+    const [transactionWithrawals, setTransactionWithrawals] = useState<transactionWithrawalsInterfcae[]>();
+    const [dytTransactions, setDytTransactions] = useState<any[]>();
     
-//     const _setSelectedUserDetails = useGeneralStore((state) => state._setSelectedUserDetails);
-//     const _setToastNotification = useSettingStore((state) => state._setToastNotification);
 
-//     const [apiResponse, setApiResponse] = useState({
-//         display: false,
-//         status: true,
-//         message: ""
-//     });
+    const getUsers = useCallback(async (pageNo: number, limitNo: number) => {
+        setIsSubmitting(true);
 
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/all`, {
+                headers: {
+                    Authorization: `Bearer ${refreshToken}`
+                },
+                params: {
+                    page: pageNo,
+                    limit: limitNo,
+                }
+            })).data;
+            console.log(response);
 
-//     const getUsers = useCallback(async (pageNo: number, limitNo: number, userType: 'All' | 'artist' | 'record label' = "All") => {
-//         setIsSubmitting(true);
+            if (response.statusCode == 200) {
+                setUsers(response.data);
 
-//         try {
-//             const response = (await axios.get(`${apiEndpoint}/admin/users`, {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`
-//                 },
-//                 params: {
-//                     page: pageNo,
-//                     limit: limitNo,
-//                     userType
-//                 }
-//             })).data;
-//             // console.log(response);
+                // setCurrentPageNo(response.currentPage);
+                // setTotalPages(response.totalPages);
+                setTotalRecords(response.count);
 
-//             if (response.status) {
-//                 setUsers(response.result.data);
+                setIsSubmitting(false);
+            }
 
-//                 setCurrentPageNo(response.result.currentPage);
-//                 setTotalPages(response.result.totalPages);
-//                 setTotalRecords(response.result.totalRecords);
-
-//                 setIsSubmitting(false);
-//             }
-
-//             _setToastNotification({
-//                 display: true,
-//                 status: "info",
-//                 message: response.message
-//             });
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
     
-//         } catch (error: any) {
-//             const err = error.response && error.response.data ? error.response.data : error;
-//             const fixedErrorMsg = "Ooops and error occurred!";
-//             // console.log(err);
-//             // setUsers([]);
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
+            // setUsers([]);
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "error",
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//             setApiResponse({
-//                 display: true,
-//                 status: false,
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
+            setApiResponse({
+                display: true,
+                status: false,
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//             setIsSubmitting(false);
-//         }
-//     }, []);
+            setIsSubmitting(false);
+        }
+    }, []);
 
-//     const getUserById = useCallback(async (id: string) => {
-//         setIsSubmitting(true);
+    const getFreeUsers = useCallback(async (pageNo: number, limitNo: number) => {
+        setIsSubmitting(true);
 
-//         try {
-//             const response = (await axios.get(`${apiEndpoint}/admin/users/user-by-id`, {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`
-//                 },
-//                 params: { id }
-//             })).data;
-//             // console.log(response);
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/free`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                params: {
+                    page: pageNo,
+                    limit: limitNo,
+                }
+            })).data;
+            // console.log(response);
 
-//             if (response.status) {
-//                 _setSelectedUserDetails(response.result.user);
-//                 setRlArtistsCount(response.result.rlArtistCount);
-//                 setReleaseCount(response.result.releasesCount);
-//             }
+            if (response.statusCode == 200) {
+                setUsers(response.data);
+
+                // setCurrentPageNo(response.currentPage);
+                // setTotalPages(response.totalPages);
+                setTotalRecords(response.count);
+
+                setIsSubmitting(false);
+            }
+
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
     
-//             _setToastNotification({
-//                 display: true,
-//                 status: "info",
-//                 message: response.message
-//             });
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
+            // setUsers([]);
+
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
+
+            setApiResponse({
+                display: true,
+                status: false,
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
+
+            setIsSubmitting(false);
+        }
+    }, []);
+
+    const getPremiumUsers = useCallback(async (pageNo: number, limitNo: number) => {
+        setIsSubmitting(true);
+
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/premium`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                params: {
+                    page: pageNo,
+                    limit: limitNo,
+                }
+            })).data;
+            // console.log(response);
+
+            if (response.statusCode == 200) {
+                setUsers(response.data);
+
+                // setCurrentPageNo(response.currentPage);
+                // setTotalPages(response.totalPages);
+                setTotalRecords(response.count);
+
+                setIsSubmitting(false);
+            }
+
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
     
-//             setIsSubmitting(false);
-//         } catch (error: any) {
-//             const err = error.response && error.response.data ? error.response.data : error;
-//             const fixedErrorMsg = "Ooops and error occurred!";
-//             // console.log(err);
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
+            // setUsers([]);
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "error",
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//             setIsSubmitting(false);
-//         }
-//     }, []);
+            setApiResponse({
+                display: true,
+                status: false,
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//     const getUsersTopStats = useCallback(async () => {
-//         try {
-//             const response = (await axios.get(`${apiEndpoint}/admin/users/top-stats`, {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`
-//                 },
-//                 // params: { id }
-//             })).data;
-//             // console.log(response);
+            setIsSubmitting(false);
+        }
+    }, []);
 
-//             if (response.status) {
-//                 setTopUserBalances(response.result.topBalances);
-//                 setTopReleases(response.result.topReleases);
-//             }
+    const getVerifiedUsers = useCallback(async (pageNo: number, limitNo: number) => {
+        setIsSubmitting(true);
+
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/verified`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                params: {
+                    page: pageNo,
+                    limit: limitNo,
+                }
+            })).data;
+            // console.log(response);
+
+            if (response.statusCode == 200) {
+                setUsers(response.data);
+
+                // setCurrentPageNo(response.currentPage);
+                // setTotalPages(response.totalPages);
+                setTotalRecords(response.count);
+
+                setIsSubmitting(false);
+            }
+
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
     
-//             _setToastNotification({
-//                 display: true,
-//                 status: "info",
-//                 message: response.message
-//             });
-//         } catch (error: any) {
-//             const err = error.response && error.response.data ? error.response.data : error;
-//             const fixedErrorMsg = "Ooops and error occurred!";
-//             // console.log(err);
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
+            // setUsers([]);
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "error",
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
-//         }
-//     }, []);
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//     const getUserReleases = useCallback(async (id: string, pageNo: number, limitNo: number) => {
-//         try {
-//             const response = (await axios.get(`${apiEndpoint}/admin/users/releases`, {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`
-//                 },
-//                 params: {
-//                     page: pageNo,
-//                     limit: limitNo,
-//                     user_id: id
-//                 }
-//             })).data;
-//             // console.log(response);
+            setApiResponse({
+                display: true,
+                status: false,
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//             if (response.status) {
-//                 setReleases(response.result.data);
+            setIsSubmitting(false);
+        }
+    }, []);
 
-//                 setCurrentPageNo(response.result.currentPage);
-//                 setTotalPages(response.result.totalPages);
-//                 setTotalRecords(response.result.totalRecords);
-//             }
+    const getNotVerifiedUsers = useCallback(async (pageNo: number, limitNo: number) => {
+        setIsSubmitting(true);
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "info",
-//                 message: response.message
-//             });
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/not-verified`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                params: {
+                    page: pageNo,
+                    limit: limitNo,
+                }
+            })).data;
+            // console.log(response);
+
+            if (response.statusCode == 200) {
+                setUsers(response.data);
+
+                // setCurrentPageNo(response.currentPage);
+                // setTotalPages(response.totalPages);
+                setTotalRecords(response.count);
+
+                setIsSubmitting(false);
+            }
+
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
     
-//         } catch (error: any) {
-//             const err = error.response && error.response.data ? error.response.data : error;
-//             const fixedErrorMsg = "Ooops and error occurred!";
-//             // console.log(err);
-//             setReleases([]);
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
+            // setUsers([]);
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "error",
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
-//         }
-//     }, []);
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//     const getRlArtistReleases = useCallback(async (user_id: string, artist_id: string, pageNo: number, limitNo: number) => {
-//         try {
-//             const response = (await axios.get(`${apiEndpoint}/admin/users/rl-artist-releases`, {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`
-//                 },
-//                 params: {
-//                     page: pageNo,
-//                     limit: limitNo,
-//                     user_id, artist_id
-//                 }
-//             })).data;
-//             // console.log(response);
+            setApiResponse({
+                display: true,
+                status: false,
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//             if (response.status) {
-//                 setArtistReleases(response.result.data);
+            setIsSubmitting(false);
+        }
+    }, []);
 
-//                 setCurrentPageNo(response.result.currentPage);
-//                 setTotalPages(response.result.totalPages);
-//                 setTotalRecords(response.result.totalRecords);
-//             }
+    const getUserById = useCallback(async (id: string) => {
+        setIsSubmitting(true);
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "info",
-//                 message: response.message
-//             });
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })).data;
+            console.log(response);
+
+            if (response.statusCode == 200) {
+                setSelectedUserDetails(response.data);
+            }
     
-//         } catch (error: any) {
-//             const err = error.response && error.response.data ? error.response.data : error;
-//             const fixedErrorMsg = "Ooops and error occurred!";
-//             // console.log(err);
-//             setReleases([]);
-
-//             _setToastNotification({
-//                 display: true,
-//                 status: "error",
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
-//         }
-//     }, []);
-
-//     const getRecordLabelUserArtists = useCallback(async (id: string, pageNo: number, limitNo: number) => {
-//         try {
-//             const response = (await axios.get(`${apiEndpoint}/admin/users/rl-artist`, {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`
-//                 },
-//                 params: {
-//                     page: pageNo,
-//                     limit: limitNo,
-//                     user_id: id
-//                 }
-//             })).data;
-//             // console.log(response);
-
-//             if (response.status) {
-//                 setRlArtists(response.result.data);
-
-//                 setCurrentPageNo(response.result.currentPage);
-//                 setTotalPages(response.result.totalPages);
-//                 setTotalRecords(response.result.totalRecords);
-//             }
-
-//             _setToastNotification({
-//                 display: true,
-//                 status: "info",
-//                 message: response.message
-//             });
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
     
-//         } catch (error: any) {
-//             const err = error.response && error.response.data ? error.response.data : error;
-//             const fixedErrorMsg = "Ooops and error occurred!";
-//             // console.log(err);
-//             setRlArtists([]);
+            setIsSubmitting(false);
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            // console.log(err);
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "error",
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
-//         }
-//     }, []);
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//     const searchUsers = useCallback(async (searchWord: string, pageNo: number = 1, limitNo: number = 100) => {
-//         setIsSubmitting(true);
+            setIsSubmitting(false);
+        }
+    }, []);
 
-//         try {
-//             const response = (await axios.get(`${apiEndpoint}/admin/users/search`, {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`
-//                 },
-//                 params: {
-//                     search: searchWord,
-//                     page: pageNo,
-//                     limit: limitNo,
-//                 }
-//             })).data;
-//             // console.log(response);
+    const suspendUserById = useCallback(async (id: string, exfunc = () => {}) => {
+        setIsSubmitting(true);
 
-//             if (response.status) {
-//                 setUsers(response.result.data);
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/suspend/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })).data;
+            // console.log(response);
 
-//                 setCurrentPageNo(response.result.currentPage);
-//                 setTotalPages(response.result.totalPages);
-//                 setTotalRecords(response.result.totalRecords);
-
-//                 setIsSubmitting(false);
-//             }
+            if (response.statusCode == 200) {
+                exfunc();
+            }
     
-//         } catch (error: any) {
-//             const err = error.response && error.response.data ? error.response.data : error;
-//             const fixedErrorMsg = "Ooops and error occurred!";
-//             console.log(err);
-//             // setUsers([]);
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "error",
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
+            setIsSubmitting(false);
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
 
-//             setIsSubmitting(false);
-//         }
-//     }, []);
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
 
-//     const handleUserStatus = useCallback(async (
-//         user_id: string, currentStatus: boolean
-//     ) => {
+            setIsSubmitting(false);
+        }
+    }, []);
 
-//         try {
-//             const response = (await axios.post(`${apiEndpoint}/admin/users/update-status`, 
-//                 { currentStatus, user_id }, {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`
-//                 }
-//             })).data;
-//             // console.log(response);
+    const getUserTravelLocations = useCallback(async (id: string) => {
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/travel/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })).data;
+            console.log(response);
 
-//             if (response.status) {
-//                 _setSelectedUserDetails(response.result);
-//                 // modalFn()
-//             }
+            if (response.statusCode == 200) {
+                setUserTravelLocations(response.data);
+            }
     
-//             _setToastNotification({
-//                 display: true,
-//                 status: "info",
-//                 message: response.message
-//             });
-//         } catch (error: any) {
-//             const err = error.response && error.response.data ? error.response.data : error;
-//             const fixedErrorMsg = "Ooops and error occurred!";
-//             console.log(err);
-//             // setUsers([]);
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
 
-//             _setToastNotification({
-//                 display: true,
-//                 status: "error",
-//                 message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
-//             });
-//         }
-//     }, []);
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
+        }
+    }, []);
+
+    const getUserTransactionHistory = useCallback(async (id: string, pageNo: number, limitNo: number) => {
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/transaction-history/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                params: {
+                    page: pageNo,
+                    limit: limitNo,
+                }
+            })).data;
+            console.log(response);
+
+            if (response.statusCode == 200) {
+                setTransactionPayments(response.data.payments);
+                setTransactionWithrawals(response.data.withrawals);
+            }
+    
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
+
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
+        }
+    }, []);
+
+    const getUserDytTransactionHistory = useCallback(async (id: string, pageNo: number, limitNo: number) => {
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/user/dyt-history/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                params: {
+                    page: pageNo,
+                    limit: limitNo,
+                }
+            })).data;
+            console.log(response);
+
+            if (response.statusCode == 200) {
+                setDytTransactions(response.data);
+            }
+    
+            _setToastNotification({
+                display: true,
+                status: "info",
+                message: response.message
+            });
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
+
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
+        }
+    }, []);
 
 
-//     return {
-//         apiResponse, setApiResponse,
-//         limitNo, setLimitNo,
+    const searchUsers = useCallback(async (searchWord: string, pageNo: number = 1, limitNo: number = 100) => {
+        setIsSubmitting(true);
 
-//         currentPageNo, totalRecords,
-//         totalPages,
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/users/search`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                params: {
+                    search: searchWord,
+                    page: pageNo,
+                    limit: limitNo,
+                }
+            })).data;
+            // console.log(response);
 
-//         isSubmitting,
+            if (response.status) {
+                setUsers(response.result.data);
 
-//         // singleUsers, albumUsers,
-//         users, 
-//         getUsers,
-//         getUserById,
-//         searchUsers,
-//         handleUserStatus,
+                setCurrentPageNo(response.result.currentPage);
+                setTotalPages(response.result.totalPages);
+                setTotalRecords(response.result.totalRecords);
 
-//         rlArtistsCount,
-//         releaseCount,
+                setIsSubmitting(false);
+            }
+    
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            console.log(err);
+            // setUsers([]);
 
-//         releases,
-//         getUserReleases,
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.errors.length ? err.errors[0].msg : err.message || fixedErrorMsg
+            });
 
-//         artistReleases,
-//         getRlArtistReleases,
+            setIsSubmitting(false);
+        }
+    }, []);
 
-//         rlArtists,
-//         getRecordLabelUserArtists,
 
-//         topReleases,
-//         topUserBalances,
-//         getUsersTopStats
-//     }
-// }
+
+    return {
+        apiResponse, setApiResponse,
+
+        limitNo, setLimitNo,
+        currentPageNo, setCurrentPageNo,
+        totalRecords, setTotalRecords,
+        totalPages, setTotalPages,
+
+        isSubmitting,
+
+        // singleUsers, albumUsers,
+        users, 
+        selectedUserDetails,
+        transactionPayments,
+        transactionWithrawals,
+        dytTransactions,
+        getUsers,
+        getNotVerifiedUsers,
+        getFreeUsers,
+        getPremiumUsers,
+        getVerifiedUsers,
+        getUserById,
+        userTravelLocations,
+        getUserTravelLocations,
+        suspendUserById,
+        getUserTransactionHistory,
+        getUserDytTransactionHistory,
+        searchUsers,
+    }
+}

@@ -4,7 +4,7 @@ import { ChevronLeft, X, ImageIcon, ChevronDown, MapPin } from "lucide-react"
 import Security from "./security"
 import apiClient from "../utils/apiClient"
 // @ts-ignore
-import LocationSelectionModal from "./locationselection"
+import LocationSelectionModal from "../locationselection"
 import "./scrollbar-hide.css"
 import { useNavigate } from "react-router-dom"
 
@@ -16,14 +16,14 @@ interface LocationData {
   longitude: string
 }
 
-interface CarFormData {
-  id?: string
-  price: number
-  category_id: string
-  brand_id: string
-  location: LocationData
-  car_image?: File
-}
+// interface CarFormData {
+//   id?: string
+//   price: number
+//   category_id: string
+//   brand_id: string
+//   location: LocationData
+//   car_image?: File
+// }
 
 interface Car {
   id: string
@@ -105,31 +105,71 @@ export default function CarsManagement() {
   }
 
   const handleAddCar = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const data: CarFormData = {
-      price: Number(formData.get("price")),
-      category_id: formData.get("category_id") as string,
-      brand_id: formData.get("brand_id") as string,
-      location: selectedLocation as LocationData,
-      car_image: formData.get("car_image") as File,
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const carImage = formData.get("car_image");
+    
+    if (!carImage) {
+      setError("Please select an image");
+      return;
     }
-
+  
+    if (!selectedLocation) {
+      setError("Please select a location");
+      return;
+    }
+  
+    const requestData = new FormData();
+    // For nested location object, create it as a JSON string
+    const locationData = JSON.stringify({
+      city: selectedLocation.city,
+      state: selectedLocation.state,
+      country: selectedLocation.country,
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude
+    });
+  
+    requestData.append('location', locationData);
+    requestData.append('price', formData.get("price") as string);
+    requestData.append('category_id', formData.get("category_id") as string);
+    requestData.append('brand_id', formData.get("brand_id") as string);
+    requestData.append('car_image', carImage);
+  
+    console.log('FormData entries:');
+    for (let pair of requestData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+  
     try {
+      let response;
       if (editingCar) {
-        await apiClient.patch("/admin/car/edit", { ...data, id: editingCar.id })
+        requestData.append('id', editingCar.id);
+        response = await apiClient.patch("/admin/car/edit", requestData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
       } else {
-        await apiClient.post("/admin/car/new", data)
+        response = await apiClient.post("/admin/car/new", requestData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
       }
-      fetchCars()
-      setIsAddCarModalOpen(false)
-      setEditingCar(null)
-      setSelectedImage(null)
-      setSelectedLocation(null)
+      console.log('API Response:', response.data);
+      
+      fetchCars();
+      setIsAddCarModalOpen(false);
+      setEditingCar(null);
+      setSelectedImage(null);
+      setSelectedLocation(null);
     } catch (err) {
-      setError("Oops! something is wrong try reloading this tab");
-  }
-  }
+      console.error('API Error:', err);
+      setError("Oops! Something is wrong. Try reloading this tab");
+    }
+  };
+  
+  
 
   const handleAddBrand = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

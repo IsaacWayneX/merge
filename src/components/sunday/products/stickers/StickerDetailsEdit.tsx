@@ -1,33 +1,28 @@
+import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 
 import kolors from '@/constants/kolors';
-import { convertToBase64 } from '@/util/resources';
-import Button from '@mui/material/Button';
 import { themeBtnStyle } from '@/util/mui';
-import TextField from '@mui/material/TextField';
-import { useEffect, useState } from 'react';
-import IconButton from '@mui/material/IconButton';
-// import pinkDiamondIcon from "@/assets/images/stickers/pinkDiamondIcon.png";
-import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import { convertToBase64 } from '@/util/resources';
+import { stickerInterface } from '@/typeInterfaces/stickers.interface';
 
 
 interface _Props {
-    selectedSticker: {
-        id: string;
-        name: string;
-        icon: string;
-        price: string;
-        purchase: string;
-    },
-
-    deleteStickerBtn: (sticker: any) => void
-    saveStickerBtn: (oldSticker: any, newSticker: any) => void
+    isSubmitting: boolean,
+    selectedSticker: stickerInterface,
+    deleteStickerBtn: (sticker: stickerInterface) => void
+    saveStickerBtn: (oldSticker: stickerInterface, newSticker: any) => void
 };
 
 const StickerDetailsEditComponent: React.FC<_Props> = ({
-    selectedSticker, deleteStickerBtn, saveStickerBtn
+    selectedSticker, deleteStickerBtn, saveStickerBtn, isSubmitting
 }) => {
     const [priceInputValue, setPriceInputValue] = useState('');
     const [nameInputValue, setNameInputValue] = useState('');
@@ -37,7 +32,7 @@ const StickerDetailsEditComponent: React.FC<_Props> = ({
     useEffect(() => {
         setPriceInputValue(selectedSticker.price);
         setNameInputValue(selectedSticker.name);
-        setIconInputValue(selectedSticker.icon);
+        setIconInputValue(selectedSticker.url);
 
         setInputIconImage(undefined);
     }, [selectedSticker])
@@ -48,7 +43,7 @@ const StickerDetailsEditComponent: React.FC<_Props> = ({
         setInputIconImage(file);
 
         const base64 = await convertToBase64(file);
-        console.log(base64.result);
+        // console.log(base64.result);
         setIconInputValue(base64.result);
     
         e.target.value = "";
@@ -71,6 +66,7 @@ const StickerDetailsEditComponent: React.FC<_Props> = ({
 
                 <Button variant="contained" size='small'
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => saveStickerBtn(
                         selectedSticker,
                         {
@@ -78,6 +74,7 @@ const StickerDetailsEditComponent: React.FC<_Props> = ({
                             icon: iconInputValue,
                             price: priceInputValue,
                             image: inputIconImage,
+                            imagePreview: iconInputValue
                         }
                     )}
                         
@@ -182,6 +179,11 @@ const StickerDetailsEditComponent: React.FC<_Props> = ({
                                 // ...authMuiTextFieldStyle
                             }}
 
+                            slotProps={{
+                                input: {
+                                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                },
+                            }}
                             value={priceInputValue}
                             onChange={(e) => {
                                 const value = e.target.value;
@@ -196,6 +198,7 @@ const StickerDetailsEditComponent: React.FC<_Props> = ({
             <Stack direction="row" alignItems="center" justifyContent="center" mt={3}>
                 <Button variant="contained" size='small'
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => deleteStickerBtn(selectedSticker)}
                     sx={{
                         ...themeBtnStyle,

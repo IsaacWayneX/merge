@@ -3,30 +3,15 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import kolors from '@/constants/kolors';
-import { currencyDisplay, formatedNumber } from '@/util/resources';
+import { currencyDisplay } from '@/util/resources';
+import { stickerInterface } from '@/typeInterfaces/stickers.interface';
 // import pinkDiamondIcon from "@/assets/images/stickers/pinkDiamondIcon.png";
 
 
 interface _Props {
-    selectedSticker: {
-        id: string;
-        name: string;
-        icon: string;
-        price: string;
-        purchase: string;
-    },
-
+    selectedSticker: stickerInterface,
     editStickerBtn: (editSticker: boolean) => void
 };
-
-// const sticker = {
-//     id: "1",
-//     name: "Pink diamond",
-//     icon: pinkDiamondIcon,
-//     price: '300',
-//     purchase: "30000"
-// };
-
 
 const StickerDetailsComponent: React.FC<_Props> = ({
     selectedSticker, editStickerBtn
@@ -66,7 +51,7 @@ const StickerDetailsComponent: React.FC<_Props> = ({
                 }}
             >
                 <img 
-                    src={selectedSticker.icon} alt='stickers image'
+                    src={selectedSticker.url} alt='stickers image'
                     style={{
                         // width: "100%",
                         maxWidth: "60px",
@@ -93,7 +78,7 @@ const StickerDetailsComponent: React.FC<_Props> = ({
                             fontSize: "16px",
                             color: "#595757"
                         }}
-                    > Pink diamond</Typography>
+                    > {selectedSticker.name} </Typography>
                 </Stack>
 
                 <Stack direction="row" spacing="10px" alignItems="center">
@@ -124,7 +109,7 @@ const StickerDetailsComponent: React.FC<_Props> = ({
 
                 </Stack>
 
-                <Stack direction="row" spacing="10px" alignItems="center">
+                {/* <Stack direction="row" spacing="10px" alignItems="center">
                     <Typography
                         sx={{
                             fontWeight: "600",
@@ -139,8 +124,8 @@ const StickerDetailsComponent: React.FC<_Props> = ({
                             fontSize: "16px",
                             color: "#595757"
                         }}
-                    > {formatedNumber(Number(selectedSticker.purchase))}</Typography>
-                </Stack>
+                    > {formatedNumber(Number(selectedSticker.price))}</Typography>
+                </Stack> */}
             </Box>
         </Box>
     )

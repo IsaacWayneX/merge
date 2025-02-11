@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -7,6 +7,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
@@ -14,6 +15,7 @@ import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import kolors from '@/constants/kolors';
 import { themeBtnStyle } from '@/util/mui';
 import { convertToBase64 } from '@/util/resources';
+import { useStickersHook } from '@/hooks/products/useStickersHook';
 
 
 interface _Props {
@@ -29,11 +31,22 @@ export const UploadStickerModal: React.FC<_Props> = ({
     const [iconInputValue, setIconInputValue] = useState('');
     const [inputIconImage, setInputIconImage] = useState<any>();
 
-    const [apiResponse, setApiResponse] = useState({
-        display: false,
-        status: true,
-        message: ""
-    });
+    const {
+        apiResponse, setApiResponse,
+        isSubmitting,
+        addNewSticker,
+        getAllSticker,
+    } = useStickersHook();
+
+    useEffect(() => {
+        if (!openUploadStickerModal) {
+            setPriceInputValue('');
+            setNameInputValue('');
+            setIconInputValue('');
+            setInputIconImage(undefined);
+        }
+    }, [openUploadStickerModal]);
+    
     
     const handleFileUpload = async (e: any) => {
         const file = e.target.files[0]; 
@@ -47,6 +60,12 @@ export const UploadStickerModal: React.FC<_Props> = ({
     }
 
     const handleSubmit = () => {
+        setApiResponse({
+            display: false,
+            status: false,
+            message: ""
+        });
+
         if (!priceInputValue) {
             setApiResponse({
                 display: true,
@@ -74,6 +93,17 @@ export const UploadStickerModal: React.FC<_Props> = ({
             return;
         }
 
+        addNewSticker(
+            nameInputValue, Number(priceInputValue), 
+            inputIconImage, 
+            () => {
+                getAllSticker();
+
+                setTimeout(() => {
+                    closeUploadStickerModal(false);
+                }, 3000);
+            }
+        );
     }
     
 
@@ -218,6 +248,11 @@ export const UploadStickerModal: React.FC<_Props> = ({
                                 sx={{
                                     // ...authMuiTextFieldStyle
                                 }}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                    },
+                                }}
 
                                 value={priceInputValue}
                                 onChange={(e) => {
@@ -240,6 +275,7 @@ export const UploadStickerModal: React.FC<_Props> = ({
                             <Button variant="contained" size='small'
                                 type="button"
                                 onClick={() => handleSubmit()}
+                                disabled={isSubmitting}
                                 sx={{
                                     ...themeBtnStyle,
                                     fontSize: "12px",

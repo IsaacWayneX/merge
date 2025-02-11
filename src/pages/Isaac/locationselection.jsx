@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import Modal from "react-modal"
-import { Search } from "lucide-react"
+import { Search, Check, MapPin, X } from "lucide-react"
 
 const API_KEY = "AIzaSyCKGOncl1C9CKmSzx9ExmibDumfVSJWl6s"
 
@@ -9,6 +9,7 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
   const [locations, setLocations] = useState([])
   const [loading, setLoading] = useState(false)
   const [autocompleteService, setAutocompleteService] = useState(null)
+  const [selectedLocationId, setSelectedLocationId] = useState(null)
 
   useEffect(() => {
     const loadGoogleMapsScript = () => {
@@ -108,6 +109,8 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
       // Extract address components
       const addressInfo = extractAddressComponents(address_components)
 
+      setSelectedLocationId(location.place_id)
+
       // Pass the location data directly to parent component
       onSelectLocation({
         ...addressInfo,
@@ -115,7 +118,10 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
         longitude: coords.lng().toString(),
       })
 
-      onClose()
+      setTimeout(() => {
+        onClose()
+        setSelectedLocationId(null)
+      }, 500)
     } catch (error) {
       console.error("Error processing location selection:", error)
     }
@@ -125,15 +131,21 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
     <Modal
       isOpen={isVisible}
       onRequestClose={onClose}
-      className="relative bg-white rounded-lg shadow-lg max-w-md w-full mx-auto p-4 max-h-[60vh] overflow-hidden"
+      className="relative bg-white rounded-lg shadow-lg max-w-md w-full mx-auto p-6 max-h-[80vh] overflow-hidden"
       overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60"
       style={{
         overlay: { zIndex: 1100 },
       }}
     >
       <div className="flex flex-col h-full">
-        <div className="flex items-center space-x-2 mb-3 border-b border-gray-200 pb-2">
-          <Search size={18} className="text-gray-500" />
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Select Location</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <X size={24} />
+          </button>
+        </div>
+        <div className="flex items-center space-x-2 mb-4 bg-gray-100 rounded-lg p-3">
+          <Search size={20} className="text-[#5E17EB]" />
           <input
             type="text"
             className="w-full outline-none bg-transparent placeholder-gray-400 text-gray-700 text-sm"
@@ -144,19 +156,25 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center py-2">
-            <div className="border-t-4 border-teal-500 rounded-full w-5 h-5 animate-spin"></div>
+          <div className="flex justify-center items-center py-8">
+            <div className="border-t-4 border-[#5E17EB] rounded-full w-8 h-8 animate-spin"></div>
           </div>
         ) : (
-          <div className="overflow-y-auto max-h-[45vh] -mx-4 px-4">
+          <div className="overflow-y-auto flex-grow -mx-6 px-6">
             <ul className="space-y-2">
               {locations.map((location) => (
                 <li
                   key={location.place_id}
                   onClick={() => handleLocationSelect(location)}
-                  className="cursor-pointer hover:bg-gray-50 p-2 rounded-md text-gray-700 text-sm"
+                  className={`cursor-pointer hover:bg-purple-50 p-4 rounded-md text-gray-700 text-sm flex items-center justify-between transition-colors duration-200 ${
+                    selectedLocationId === location.place_id ? "bg-purple-100" : ""
+                  }`}
                 >
-                  {location.description}
+                  <div className="flex items-center space-x-3">
+                    <MapPin size={18} className="text-[#5E17EB]" />
+                    <span>{location.description}</span>
+                  </div>
+                  {selectedLocationId === location.place_id && <Check size={18} className="text-[#5E17EB]" />}
                 </li>
               ))}
             </ul>
@@ -168,3 +186,4 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
 }
 
 export default LocationSelectionModal
+

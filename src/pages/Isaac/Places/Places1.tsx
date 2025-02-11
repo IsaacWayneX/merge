@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from "react";
-import { Trash2, X, Upload, Star } from "lucide-react";
-import { Document, Page } from "react-pdf";
+import { useState, type FormEvent } from "react"
+import { Trash2, X, Upload, Star, Plus, MapPin } from "lucide-react"
+// @ts-ignore
+import LocationSelectionModal from "../LocationSelection"
 
 interface Place {
   id: number
@@ -12,6 +13,14 @@ interface Place {
   weekdayHours: string
   weekendHours: string
   menuPdf?: string
+}
+
+interface SelectedLocation {
+  city: string
+  state: string
+  country: string
+  latitude: string
+  longitude: string
 }
 
 const dummyCategories = ["Restaurant", "Bar", "Club", "Cafe", "Lounge"]
@@ -43,69 +52,78 @@ const dummyPlaces: Place[] = [
   },
 ]
 
-export default function Places1() {
+export default function Places() {
   const [showActionModal, setShowActionModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
-  const [showBannerModal, setShowBannerModal] = useState(false)
-  const [showHoursModal, setShowHoursModal] = useState(false)
-  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showCategoryModal, setShowCategoryModal] = useState<{ show: boolean; parent: "add" | "edit" | null }>({
+    show: false,
+    parent: null,
+  })
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [rating, setRating] = useState(0)
   const [bannerFiles, setBannerFiles] = useState<File[]>([])
   const [menuFile, setMenuFile] = useState<File | null>(null)
   const [menuPreviewUrl, setMenuPreviewUrl] = useState<string>("")
   const [isEditMode, setIsEditMode] = useState(false)
+  const [formData, setFormData] = useState<FormData | null>(null)
+  const [showLocationModal, setShowLocationModal] = useState(false)
+  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null)
 
   const openActionModal = (place: Place) => {
     setSelectedPlace(place)
     setShowActionModal(true)
-    selectedPlace
-
   }
 
-  const handleAddPlace = async (e: FormEvent<HTMLFormElement>) => {
+  const handleAddPlace = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-
-    // Append all form fields
-    const placePayload = new FormData()
-    placePayload.append("name", formData.get("name") as string)
-    placePayload.append("location", formData.get("location") as string)
-    placePayload.append("category", formData.get("category") as string)
-    placePayload.append("description", formData.get("description") as string)
-    placePayload.append("rating", rating.toString())
-
+    const newFormData = new FormData(e.currentTarget)
+    setFormData(newFormData)
     setShowAddModal(false)
-    setShowBannerModal(true)
+    setShowDetailsModal(true)
   }
 
-  const handleBannerUpload = () => {
-    if (bannerFiles.length === 0) return
-    setShowBannerModal(false)
-    setShowHoursModal(true)
-  }
-
-  const handleHoursAndMenu = async (e: FormEvent<HTMLFormElement>) => {
+  const handleDetailsSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+    const detailsData = new FormData(e.currentTarget)
 
-    // Here you would typically send all data to your API
-    // await createPlace(formData)
+    // Combine all form data
+    const requestData = new FormData()
+    if (formData) {
+      for (const [key, value] of formData.entries()) {
+        requestData.append(key, value)
+      }
+    }
+    for (const [key, value] of detailsData.entries()) {
+      requestData.append(key, value)
+    }
+    requestData.append("rating", rating.toString())
 
-    setShowHoursModal(false)
+    // Append banner files
+    bannerFiles.forEach((file, index) => {
+      requestData.append(`banner${index + 1}`, file)
+    })
+
+    // Append menu file if exists
+    if (menuFile) {
+      requestData.append("menuPdf", menuFile)
+    }
+
+    // Here you would typically send the requestData to your API
+    console.log("Form submitted:", requestData)
+
+    setShowDetailsModal(false)
     resetForm()
-    formData
   }
 
   const handleCreateCategory = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+    const categoryData = new FormData(e.currentTarget)
 
     // Here you would typically send category data to your API
-    // await createCategory(formData.get("category"))
+    console.log("New category:", categoryData.get("category"))
 
-    setShowCategoryModal(false)
-    formData
+    setShowCategoryModal({ show: false, parent: null })
   }
 
   const resetForm = () => {
@@ -114,12 +132,18 @@ export default function Places1() {
     setMenuFile(null)
     setMenuPreviewUrl("")
     setIsEditMode(false)
+    setFormData(null)
   }
 
   const handleMenuUpload = (file: File) => {
     setMenuFile(file)
     const url = URL.createObjectURL(file)
     setMenuPreviewUrl(url)
+  }
+
+  const handleLocationSelect = (location: SelectedLocation) => {
+    setSelectedLocation(location)
+    setShowLocationModal(false)
   }
 
   return (
@@ -207,21 +231,26 @@ export default function Places1() {
                     name="category"
                     required
                     className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E17EB] text-gray-800 appearance-none"
+                    onChange={(e) => {
+                      if (e.target.value === "new") {
+                        e.preventDefault()
+                        setShowCategoryModal({ show: true, parent: isEditMode ? "edit" : "add" })
+                      }
+                    }}
                   >
+                    <option value="" disabled>
+                      Select category
+                    </option>
                     {dummyCategories.map((category) => (
                       <option key={category} value={category}>
                         {category}
                       </option>
                     ))}
+                    <option value="new" className="text-[#5E17EB]">
+                      + Create new category
+                    </option>
                   </select>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowCategoryModal(true)}
-                  className="mt-1 text-[#5E17EB] text-sm hover:underline"
-                >
-                  Create new category
-                </button>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Place Name</label>
@@ -234,12 +263,22 @@ export default function Places1() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input
-                  name="location"
-                  type="text"
-                  required
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E17EB] text-gray-800"
-                />
+                <div className="relative">
+                  <input
+                    name="location"
+                    type="text"
+                    required
+                    className="w-full p-2 pl-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E17EB] text-gray-800"
+                    value={
+                      selectedLocation
+                        ? `${selectedLocation.city}, ${selectedLocation.state}, ${selectedLocation.country}`
+                        : ""
+                    }
+                    readOnly
+                    onClick={() => setShowLocationModal(true)}
+                  />
+                  <MapPin className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Place Description</label>
@@ -277,25 +316,71 @@ export default function Places1() {
         </div>
       )}
 
-      {/* Banner Upload Modal */}
-      {showBannerModal && (
+      {/* Details Modal (Merged Banner Upload, Hours, and Menu) */}
+      {showDetailsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Upload Place Images</h3>
-              <button onClick={() => setShowBannerModal(false)}>
+            <div className="flex justify-between items-center mb-6">
+              <button onClick={() => setShowDetailsModal(false)}>
                 <X className="h-5 w-5 text-gray-700" />
               </button>
             </div>
-            <div className="space-y-4">
-              {[0, 1, 2].map((index) => (
-                <div
-                  key={index}
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer"
-                  onClick={() => document.getElementById(`banner-upload-${index}`)?.click()}
+            <form onSubmit={handleDetailsSubmit} className="space-y-6">
+              {/* Main Banner Upload */}
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer mb-4"
+                onClick={() => document.getElementById("main-banner-upload")?.click()}
+              >
+                <input
+                  id="main-banner-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const newFiles = [...bannerFiles]
+                      newFiles[0] = file
+                      setBannerFiles(newFiles)
+                    }
+                  }}
+                />
+                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                <p className="text-sm text-gray-400">Click to upload</p>
+              </div>
+
+              {/* Additional Banner Uploads */}
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                {[1, 2].map((index) => (
+                  <div
+                    key={index}
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer aspect-square flex items-center justify-center"
+                    onClick={() => document.getElementById(`banner-upload-${index}`)?.click()}
+                  >
+                    <input
+                      id={`banner-upload-${index}`}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          const newFiles = [...bannerFiles]
+                          newFiles[index] = file
+                          setBannerFiles(newFiles)
+                        }
+                      }}
+                    />
+                    <Upload className="h-6 w-6 text-gray-400" />
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer aspect-square flex items-center justify-center"
+                  onClick={() => document.getElementById("banner-upload-3")?.click()}
                 >
                   <input
-                    id={`banner-upload-${index}`}
+                    id="banner-upload-3"
                     type="file"
                     accept="image/*"
                     className="hidden"
@@ -303,94 +388,66 @@ export default function Places1() {
                       const file = e.target.files?.[0]
                       if (file) {
                         const newFiles = [...bannerFiles]
-                        newFiles[index] = file
+                        newFiles[2] = file
                         setBannerFiles(newFiles)
                       }
                     }}
                   />
-                  <Upload className="mx-auto h-12 w-12 text-gray-700 mb-4" />
-                  <p className="text-gray-700">
-                    {bannerFiles[index] ? bannerFiles[index].name : `Click to upload banner image ${index + 1}`}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={handleBannerUpload}
-              className="w-full bg-[#5E17EB] text-white py-2 rounded-lg mt-4 hover:bg-[#4B11C2]"
-              disabled={bannerFiles.length === 0}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
+                  <Plus className="h-6 w-6 text-gray-400" />
+                </button>
+              </div>
 
-      {/* Hours and Menu Modal */}
-      {showHoursModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Opening Hours & Menu</h3>
-              <button onClick={() => setShowHoursModal(false)}>
-                <X className="h-5 w-5 text-gray-700" />
-              </button>
-            </div>
-            <form onSubmit={handleHoursAndMenu} className="space-y-4">
-              <div>
-                <div className="inline-block px-2 py-1 rounded bg-[#5E17EB]/10 mb-1">
-                  <span className="text-sm font-medium text-[#5E17EB]">Weekdays</span>
-                </div>
-                <input
-                  name="weekdayHours"
-                  type="text"
-                  required
-                  placeholder="e.g. 9:00 AM - 10:00 PM"
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E17EB] text-gray-800"
-                />
-              </div>
-              <div>
-                <div className="inline-block px-2 py-1 rounded bg-[#5E17EB]/10 mb-1">
-                  <span className="text-sm font-medium text-[#5E17EB]">Weekends</span>
-                </div>
-                <input
-                  name="weekendHours"
-                  type="text"
-                  required
-                  placeholder="e.g. 10:00 AM - 11:00 PM"
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E17EB] text-gray-800"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Menu PDF</label>
-                <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer"
-                  onClick={() => document.getElementById("menu-upload")?.click()}
-                >
+              {/* Opening Hours */}
+              <div className="space-y-3">
+                <div className="relative">
                   <input
-                    id="menu-upload"
-                    type="file"
-                    accept="application/pdf"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) handleMenuUpload(file)
-                    }}
+                    name="weekdayHours"
+                    type="text"
+                    required
+                    placeholder="Opening hours"
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E17EB] text-gray-800"
                   />
-                  <Upload className="mx-auto h-12 w-12 text-gray-700 mb-4" />
-                  <p className="text-gray-700">{menuFile ? menuFile.name : "Click to upload menu PDF"}</p>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-[#5E17EB]/10">
+                    <span className="text-xs font-medium text-[#5E17EB]">Week days</span>
+                  </span>
                 </div>
-                {menuPreviewUrl && (
-                  <div className="mt-4 border rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">PDF Preview</h4>
-                    <Document file={menuPreviewUrl}>
-                      <Page pageNumber={1} width={300} />
-                    </Document>
-                  </div>
-                )}
+                <div className="relative">
+                  <input
+                    name="weekendHours"
+                    type="text"
+                    required
+                    placeholder="Opening hours"
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E17EB] text-gray-800"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-[#5E17EB]/10">
+                    <span className="text-xs font-medium text-[#5E17EB]">Weekends</span>
+                  </span>
+                </div>
               </div>
-              <button type="submit" className="w-full bg-[#5E17EB] text-white py-2 rounded-lg hover:bg-[#4B11C2]">
-                Save
+
+              {/* Menu Upload */}
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer flex items-center gap-3"
+                onClick={() => document.getElementById("menu-upload")?.click()}
+              >
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <Upload className="h-6 w-6 text-gray-400" />
+                </div>
+                <input
+                  id="menu-upload"
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleMenuUpload(file)
+                  }}
+                />
+                <span className="text-sm text-gray-600">Upload menu PDF</span>
+              </div>
+
+              <button type="submit" className="w-full bg-[#5E17EB] text-white py-3 rounded-lg hover:bg-[#4B11C2]">
+                save
               </button>
             </form>
           </div>
@@ -398,12 +455,15 @@ export default function Places1() {
       )}
 
       {/* Create Category Modal */}
-      {showCategoryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      {showCategoryModal.show && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          style={{ zIndex: 60 }}
+        >
           <div className="bg-white rounded-lg p-6 w-full max-w-sm">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Create Category</h3>
-              <button onClick={() => setShowCategoryModal(false)}>
+              <button onClick={() => setShowCategoryModal({ show: false, parent: null })}>
                 <X className="h-5 w-5 text-gray-700" />
               </button>
             </div>
@@ -424,6 +484,12 @@ export default function Places1() {
           </div>
         </div>
       )}
+      {/* Location Selection Modal */}
+      <LocationSelectionModal
+        isVisible={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        onSelectLocation={handleLocationSelect}
+      />
     </div>
   )
 }

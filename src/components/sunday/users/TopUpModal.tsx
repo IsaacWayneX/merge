@@ -7,10 +7,12 @@ import CloseIcon from '@mui/icons-material/Close';
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
+import Slider from '@mui/material/Slider';
 import kolors from '@/constants/kolors';
 import { themeBtnStyle } from '@/util/mui';
 import dytTokenIcon from "@/assets/images/dytTokenIcon.png";
+import InputAdornment from '@mui/material/InputAdornment';
+import { currencyDisplay } from '@/util/resources';
 
 
 
@@ -24,7 +26,6 @@ export const TopUpModal: React.FC<_Props> = ({
     openTopUpModal, closeTopUpModal, // topUp
 }) => {
     const [topUpAmount, setTopUpAmount] = useState("");
- 
     
 
     return (
@@ -83,19 +84,13 @@ export const TopUpModal: React.FC<_Props> = ({
                                     }}
                                 >Set an amount</Typography>
 
-                                <LinearProgress 
-                                    variant="determinate" 
-                                    value={60}
-                                    sx={{
-                                        bgcolor: kolors.secondary,
-                                        borderRadius: "5px",
-                                        height: 6,
-
-                                        [`& .${linearProgressClasses.bar}`]: {
-                                            // borderRadius: 5,
-                                            backgroundColor: kolors.primary,
-                                        },
-                                    }}
+                                <Slider aria-label="Amount" 
+                                    color='secondary'
+                                    min={1} max={10000}
+                                    value={Number(topUpAmount || 0)} 
+                                    onChange={(_e, value) => {
+                                        setTopUpAmount(`${value}`)
+                                    }} 
                                 />
                             </Box>
 
@@ -140,7 +135,7 @@ export const TopUpModal: React.FC<_Props> = ({
                                             lineHeight: "16px",
                                             color: kolors.border
                                         }}
-                                    >N20,000</Typography>
+                                    >{currencyDisplay(Number(topUpAmount))}</Typography>
                                 </Box>
                             </Box>
                         </Stack>
@@ -163,6 +158,11 @@ export const TopUpModal: React.FC<_Props> = ({
                                 size='small'
                                 sx={{
                                     // ...authMuiTextFieldStyle
+                                }}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                    },
                                 }}
 
                                 value={topUpAmount}

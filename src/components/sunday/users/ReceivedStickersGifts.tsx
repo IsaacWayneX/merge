@@ -5,24 +5,21 @@ import Box from '@mui/material/Box';
 import kolors from '@/constants/kolors';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
-import pinkDiamond from "@/assets/images/stickers/pinkDiamondIcon.png";
-import gamer from "@/assets/images/stickers/gamerIcon.png";
-import oxygen from "@/assets/images/stickers/oxygenIcon.png";
+// import pinkDiamond from "@/assets/images/stickers/pinkDiamondIcon.png";
+// import gamer from "@/assets/images/stickers/gamerIcon.png";
+// import oxygen from "@/assets/images/stickers/oxygenIcon.png";
 import iphone13 from "@/assets/images/gifts/iphone13.jpeg";
+import { usersDetailsInterface } from '@/typeInterfaces/users.interface';
+import { currencyDisplay } from '@/util/resources';
 
 
 interface _Props {
-    // menuItems: {
-    //     title: string;
-    //     status: boolean;
-    //     baseLink: string;
-    // }[],
-    // value: number, 
+    userData: usersDetailsInterface, 
     // setValue: (data: number) => void
 };
 
 const ReceivedStickersGiftsComponent: React.FC<_Props> = ({
-    // menuItems, value, setValue
+    userData,
 }) => {
     // const navigate = useNavigate();
 
@@ -55,143 +52,56 @@ const ReceivedStickersGiftsComponent: React.FC<_Props> = ({
                 <Stack direction="row" gap="10px" my={2}
                     alignItems="center" flexWrap="wrap"
                 >
-                    <Box 
-                        sx={{
-                            width: "80px",
-                        }}
-                    >
-                        <Typography
-                            sx={{
-                                fontWeight: "600",
-                                fontSize: "13px",
-                                color: kolors.primary,
-                                top: 0,
-                                right: 0,
-                                textAlign: "right"
-                            }}
-                        >10x</Typography>
+                    {
+                        userData.receivedStickers.map((item) => (
+                            item.sticker ? 
+                                <Box key={item.id}
+                                    sx={{
+                                        width: "80px",
+                                    }}
+                                >
+                                    <Typography
+                                        sx={{
+                                            fontWeight: "600",
+                                            fontSize: "13px",
+                                            color: kolors.primary,
+                                            top: 0,
+                                            right: 0,
+                                            textAlign: "right"
+                                        }}
+                                    >{item.quantity}x</Typography>
 
-                        <Box>
-                            <img 
-                                src={pinkDiamond} 
-                                alt="Received Stickers" 
-                                style={{ width: "80%", objectFit: "contain" }} 
-                            />
-                        </Box>
+                                    <Box>
+                                        <img 
+                                            src={ item.sticker.url } 
+                                            alt="Received Stickers" 
+                                            style={{ width: "80%", objectFit: "contain" }} 
+                                        />
+                                    </Box>
 
-                        <Box textAlign="center">
-                            <Typography
-                                sx={{
-                                    fontWeight: "600",
-                                    fontSize: "13px",
-                                    color: kolors.border,
-                                    lineHeight: "14.52px"
-                                }}
-                            >Pink diamond</Typography>
+                                    <Box textAlign="center">
+                                        <Typography
+                                            sx={{
+                                                fontWeight: "600",
+                                                fontSize: "13px",
+                                                color: kolors.border,
+                                                lineHeight: "14.52px"
+                                            }}
+                                        >{ item.sticker.name }</Typography>
 
-                            <Typography
-                                sx={{
-                                    fontWeight: "600",
-                                    fontSize: "13px",
-                                    color: kolors.border,
-                                }}
-                            >$10</Typography>
-                        </Box>
-                         
-                    </Box>
-
-                    <Box 
-                        sx={{
-                            width: "80px",
-                        }}
-                    >
-                        <Typography
-                            sx={{
-                                fontWeight: "600",
-                                fontSize: "13px",
-                                color: kolors.primary,
-                                top: 0,
-                                right: 0,
-                                textAlign: "right"
-                            }}
-                        >1x</Typography>
-
-                        <Box>
-                            <img 
-                                src={oxygen} 
-                                alt="Received Stickers" 
-                                style={{ width: "80%", objectFit: "contain" }} 
-                            />
-                        </Box>
-
-                        <Box textAlign="center">
-                            <Typography
-                                sx={{
-                                    fontWeight: "600",
-                                    fontSize: "13px",
-                                    color: kolors.border,
-                                    lineHeight: "14.52px"
-                                }}
-                            >Pink diamond</Typography>
-
-                            <Typography
-                                sx={{
-                                    fontWeight: "600",
-                                    fontSize: "13px",
-                                    color: kolors.border,
-                                }}
-                            >$10</Typography>
-                        </Box>
-                         
-                    </Box>
-                    
-                    <Box 
-                        sx={{
-                            width: "80px",
-                        }}
-                    >
-                        <Typography
-                            sx={{
-                                fontWeight: "600",
-                                fontSize: "13px",
-                                color: kolors.primary,
-                                top: 0,
-                                right: 0,
-                                textAlign: "right"
-                            }}
-                        >4x</Typography>
-
-                        <Box>
-                            <img 
-                                src={gamer} 
-                                alt="Received Stickers" 
-                                style={{ width: "80%", objectFit: "contain" }} 
-                            />
-                        </Box>
-
-                        <Box textAlign="center">
-                            <Typography
-                                sx={{
-                                    fontWeight: "600",
-                                    fontSize: "13px",
-                                    color: kolors.border,
-                                    lineHeight: "14.52px"
-                                }}
-                            >Pink diamond</Typography>
-
-                            <Typography
-                                sx={{
-                                    fontWeight: "600",
-                                    fontSize: "13px",
-                                    color: kolors.border,
-                                }}
-                            >$10</Typography>
-                        </Box>
-                         
-                    </Box>
-
+                                        <Typography
+                                            sx={{
+                                                fontWeight: "600",
+                                                fontSize: "13px",
+                                                color: kolors.border,
+                                            }}
+                                        >{ currencyDisplay(Number(item.sticker.price)) }</Typography>
+                                    </Box>
+                                </Box>
+                            : <></>
+                        ))
+                    }
                 </Stack>
-
             </Box>
 
             <Box mt={3}>
@@ -215,8 +125,45 @@ const ReceivedStickersGiftsComponent: React.FC<_Props> = ({
                 <Stack direction="row" gap="10px" my={2}
                     alignItems="center" flexWrap="wrap"
                 >
+                    {
+                        userData.receivedGifts.map((item) => (
+                            item ? 
+                                <Box key={item.id} maxWidth="100px">
+                                    <Box
+                                        sx={{
+                                            maxWidth: "80px",
+                                            maxHeight: "80px",
+                                            borderRadius: "8px",
+                                            overflow: "hidden"
+                                        }}
+                                    >
+                                        <img 
+                                            src={ iphone13 } alt='gifts'
+                                            style={{
+                                                width: "100%",
+                                                // borderRadius: "8px",
+                                                // height: "100%",
+                                                objectFit: "cover",
+                                            }}
+                                        />
+                                    </Box>
 
-                    <Box maxWidth="100px">
+                                    <Typography
+                                        sx={{
+                                            fontWeight: "600",
+                                            fontSize: "13px",
+                                            lineHeight: "14.52px",
+                                            color: kolors.border,
+                                            mt: 1,
+                                            textAlign: "center"
+                                        }}
+                                    >{ item.product.name }</Typography>
+                                </Box>
+                            : <></>
+                        ))
+                    }
+
+                    {/* <Box maxWidth="100px">
                         <Box
                             sx={{
                                 maxWidth: "80px",
@@ -246,7 +193,7 @@ const ReceivedStickersGiftsComponent: React.FC<_Props> = ({
                                 textAlign: "center"
                             }}
                         >Iphone 13 pro</Typography>
-                    </Box>
+                    </Box> */}
 
                 </Stack>
 

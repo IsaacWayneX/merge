@@ -1,5 +1,5 @@
-import { useState } from 'react';
-// import { useUserStore } from '@/state/userStore';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import kolors from '@/constants/kolors';
@@ -11,11 +11,15 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import TableContainer from '@mui/material/TableContainer';
+import TablePagination from '@mui/material/TablePagination';
+import { useUsersHook } from '@/hooks/users/useUsersHook';
 import SearchwordComponent from '@/components/sunday/SearchwordComponent';
 import NotificationComponent from '@/components/sunday/NotificationComponent';
 import CustomBgTab, { menuItemsInterface } from '@/components/sunday/dashboard/CustomBgTab';
-import { useNavigate } from 'react-router-dom';
-
+import EmptyListComponent from '@/components/EmptyList';
+import LoadingDataComponent from '@/components/LoadingData';
+import { calculateAge } from '@/util/timeNdate';
+import { formatedNumber } from '@/util/resources';
 
 
 const UsersPage = () => {
@@ -43,11 +47,38 @@ const UsersPage = () => {
             active: false,
         },
     ]);
+
+    const {
+        // apiResponse, setApiResponse,
+        limitNo, setLimitNo,
+        currentPageNo, totalRecords,
+        // totalPages,
+
+        // isSubmitting,
+
+        // singleUsers, albumUsers,
+        users, 
+        // selectedUserDetails,
+        getUsers,
+        getNotVerifiedUsers,
+        getFreeUsers,
+        getPremiumUsers,
+        getVerifiedUsers,
+
+        // getUserById,
+        // searchUsers,
+    } = useUsersHook();
+
+    useEffect(() => {
+        handleGetUsersOnMenuChange();
+    }, [usersTypeMenuItems]);
+    
     
     const handleSearch = (searchword: string) => {
         console.log(searchword);
 
     }
+
     
     const handleUsersTypeMenuItems = (menuItems: menuItemsInterface) => {
         const newMenuItems = usersTypeMenuItems.filter((item) => {
@@ -59,7 +90,29 @@ const UsersPage = () => {
             return item
         });
         setUsersTypeMenuItems(newMenuItems);
+    }
 
+    const handleGetUsersOnMenuChange = (pageNo = currentPageNo, limit = limitNo) => {
+        const menuItem = usersTypeMenuItems.find(item => item.active);
+        if (menuItem) {
+            if (menuItem.label == "All") {
+                getUsers(pageNo, limit);
+            } else if (menuItem.label == "Free") {
+                getFreeUsers(pageNo, limit);
+            } else if (menuItem.label == "Premium") {
+                getPremiumUsers(pageNo, limit);
+            } else if (menuItem.label == "Verified") {
+                getVerifiedUsers(pageNo, limit);
+            } else if (menuItem.label == "Not verified") {
+                getNotVerifiedUsers(pageNo, limit);
+            } else {
+                handleUsersTypeMenuItems({active: false, label: "All"});
+                getUsers(currentPageNo, limitNo);
+            }
+        } else {
+            handleUsersTypeMenuItems({active: false, label: "All"});
+            getUsers(currentPageNo, limitNo);
+        }
     }
 
 
@@ -126,7 +179,7 @@ const UsersPage = () => {
                             fontSize: "40px",
                             color: kolors.primary,
                         }}
-                    >10,000</Typography>
+                    >{ formatedNumber(Number(totalRecords)) }</Typography>
 
                     <Box mt={3} width={{xs: "100%", sm: "80%", md: "70%", lg: "50%"}}>
                         <Typography
@@ -165,133 +218,121 @@ const UsersPage = () => {
                             </TableHead>
 
                             <TableBody>
-                                <TableRow hover
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                    onClick={() => navigate("/admin/users/_id_2345654321")}
-                                >
-                                    <TableCell component="th" scope="row">
-                                        <Stack direction='row' spacing="5px"
-                                            alignItems="center"
-                                        >
-                                            <Stack direction="row" spacing="5px" alignItems="center">
-                                                <Typography
-                                                    sx={{
-                                                        fontWeight: "600"
-                                                    }}
-                                                >Joshua</Typography>
+                                {
+                                    users ?
+                                        users.map((userData) => (
+                                            <TableRow hover key={userData.id}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                onClick={() => navigate(`/admin/users/${userData.id}`)}
+                                            >
+                                                <TableCell component="th" scope="row">
+                                                    <Stack direction='row' spacing="5px"
+                                                        alignItems="center" sx={{textTransform: "capitalize"}}
+                                                    >
+                                                        <Stack direction="row" spacing="5px" alignItems="center">
+                                                            <Typography
+                                                                sx={{
+                                                                    fontWeight: "600"
+                                                                }}
+                                                            >{ userData.first_name }</Typography>
 
-                                                <VerifiedIcon
-                                                    sx={{
-                                                        fontSize: "18px",
-                                                        color: kolors.primary,
-                                                    }}
-                                                />
+                                                            {
+                                                                userData.userTrait && userData.userTrait.verified ? 
+                                                                    <VerifiedIcon
+                                                                        sx={{
+                                                                            fontSize: "18px",
+                                                                            color: kolors.primary,
+                                                                        }}
+                                                                    />
+                                                                : <></>
+                                                            }
+                                                        </Stack>
+                                                    </Stack>
+                                                </TableCell>
+                                                
+                                                <TableCell sx={{textTransform: "capitalize"}}>
+                                                    {userData.userLocation.city + ", " + userData.userLocation.state}
+                                                </TableCell>
 
-                                            </Stack>
-                                        </Stack>
-                                    </TableCell>
-                                    
-                                    <TableCell>South, london</TableCell>
-                                    <TableCell>Male</TableCell>
-                                    <TableCell>27</TableCell>
-                                    <TableCell>
-                                        <Typography
-                                            sx={{
-                                                fontWeight: "700",
-                                                fontSize: "16px",
-                                                background: "linear-gradient(80.09deg, #9D5900 3.97%, #F7C028 53.75%, #B88C08 97.81%)",
-                                                WebkitBackgroundClip: "text",
-                                                backgroundClip: "text",
-                                                WebkitTextFillColor: "transparent",
-                                            }}
-                                        >Premium</Typography>
-                                    </TableCell>
-                                </TableRow>
+                                                <TableCell sx={{textTransform: "capitalize"}}>
+                                                    {userData.userTrait && userData.userTrait.gender || ''}
+                                                </TableCell>
 
-                                <TableRow hover
-                                    onClick={() => navigate("/admin/users/_id_2345654321")}
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                >
-                                    <TableCell component="th" scope="row">
-                                        <Stack direction='row' spacing="5px"
-                                            alignItems="center"
-                                        >
-                                            <Stack direction="row" spacing="5px" alignItems="center">
-                                                <Typography
-                                                    sx={{
-                                                        fontWeight: "600"
-                                                    }}
-                                                >Joshua</Typography>
+                                                <TableCell>
+                                                    {/* {userData.userTrait && userData.userTrait.date_of_birth} */}
+                                                    {userData.userTrait && calculateAge(userData.userTrait.date_of_birth) }
+                                                </TableCell>
+                                                
+                                                <TableCell>
+                                                    {
+                                                        userData.tier != "free" ? 
+                                                            <Typography component="div"
+                                                                sx={{
+                                                                    fontWeight: "700",
+                                                                    fontSize: "16px",
+                                                                    background: "linear-gradient(80.09deg, #9D5900 3.97%, #F7C028 53.75%, #B88C08 97.81%)",
+                                                                    WebkitBackgroundClip: "text",
+                                                                    backgroundClip: "text",
+                                                                    WebkitTextFillColor: "transparent",
+                                                                }}
+                                                            >Premium  
+                                                                <Typography 
+                                                                    sx={{
+                                                                        fontWeight: "400",
+                                                                        fontSize: "12px",
+                                                                    }}
+                                                                > ({userData.tier})</Typography>
+                                                            </Typography>
+                                                        :
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: "700",
+                                                                fontSize: "16px",
+                                                                color: kolors.primary,
+                                                            }}
+                                                        >{userData.tier}</Typography>
+                                                    }
 
-                                                <VerifiedIcon
-                                                    sx={{
-                                                        fontSize: "18px",
-                                                        color: kolors.primary,
-                                                    }}
-                                                />
-
-                                            </Stack>
-                                        </Stack>
-                                    </TableCell>
-                                    
-                                    <TableCell>South, london</TableCell>
-                                    <TableCell>Male</TableCell>
-                                    <TableCell>27</TableCell>
-                                    <TableCell>
-                                        <Typography
-                                            sx={{
-                                                fontWeight: "700",
-                                                fontSize: "16px",
-                                                color: kolors.primary,
-                                                // background: "linear-gradient(80.09deg, #9D5900 3.97%, #F7C028 53.75%, #B88C08 97.81%)",
-                                                // WebkitBackgroundClip: "text",
-                                                // backgroundClip: "text",
-                                                // WebkitTextFillColor: "transparent",
-                                            }}
-                                        >Free</Typography>
-                                    </TableCell>
-                                </TableRow>
-                                
-                                <TableRow hover
-                                    onClick={() => navigate("/admin/users/_id_2345654321")}
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                >
-                                    <TableCell component="th" scope="row">
-                                        <Stack direction='row' spacing="5px"
-                                            alignItems="center"
-                                        >
-                                            <Stack direction="row" spacing="5px" alignItems="center">
-                                                <Typography
-                                                    sx={{
-                                                        fontWeight: "600"
-                                                    }}
-                                                >Joshua</Typography>
-                                            </Stack>
-                                        </Stack>
-                                    </TableCell>
-                                    
-                                    <TableCell>South, london</TableCell>
-                                    <TableCell>Male</TableCell>
-                                    <TableCell>27</TableCell>
-                                    <TableCell>
-                                        <Typography
-                                            sx={{
-                                                fontWeight: "700",
-                                                fontSize: "16px",
-                                                color: kolors.primary,
-                                                // background: "linear-gradient(80.09deg, #9D5900 3.97%, #F7C028 53.75%, #B88C08 97.81%)",
-                                                // WebkitBackgroundClip: "text",
-                                                // backgroundClip: "text",
-                                                // WebkitTextFillColor: "transparent",
-                                            }}
-                                        >Free</Typography>
-                                    </TableCell>
-                                </TableRow>
-
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    : <></>
+                                }
                             </TableBody>
-
                         </Table>
                     </TableContainer>
+
+                    {
+                        users ?
+                            users.length ? <></>
+                            : <Box my={5}>
+                                <EmptyListComponent notFoundText='No users record found.' />
+                            </Box>
+                        : <Box my={5}>
+                            <LoadingDataComponent />
+                        </Box>
+                    }
+
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                        component="div"
+                        count={totalRecords} // totalRecords
+                        rowsPerPage={limitNo}
+                        page={currentPageNo -1}
+                        onPageChange={(_e, page)=> {
+                            // console.log(page);
+    
+                            const newPage = page + 1;
+                            handleGetUsersOnMenuChange(newPage, limitNo);
+                        }}
+                        onRowsPerPageChange={(e) => {
+                            const value = e.target.value;
+                            // console.log(value);
+    
+                            setLimitNo(Number(value));
+                            handleGetUsersOnMenuChange();
+                        }}
+                    />
                 </Box>
 
             </Box>
